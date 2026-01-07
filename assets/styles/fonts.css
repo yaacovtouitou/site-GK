@@ -1,0 +1,12 @@
+/* Géoula Kids Typography */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+/* Friendly, rounded sans-serif for body text */
+body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Futuristic bold tech font for headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Orbitron', 'Poppins', sans-serif;
+}

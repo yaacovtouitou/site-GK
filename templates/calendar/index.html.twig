@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Calendrier - Géoula Kids{% endblock %}
+
+{% block body %}
+<div class="space-y-6 sm:space-y-8">
+    {# Header #}
+    <div class="text-center space-y-2">
+        <h1 class="text-3xl sm:text-4xl font-bold gradient-text flex items-center justify-center gap-3">
+            <span class="text-vibrant-orange">📅</span>
+            Calendrier Hébraïque
+        </h1>
+        <p class="text-sm sm:text-base text-gray-600">
+            Découvre les dates importantes et gagne des badges exclusifs 📅
+        </p>
+    </div>
+
+    {# Upcoming Events - Horizontal Scroll #}
+    <section>
+        <h2 class="text-xl sm:text-2xl font-bold text-royal-blue mb-4 flex items-center gap-2">
+            <span class="text-vibrant-orange">✨</span>
+            Événements Prochains
+        </h2>
+
+        <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory">
+            {% for event in upcomingEvents %}
+                {% set categoryColor = event.category == 'chassidic' ? 'from-vibrant-orange to-gold' : (event.category == 'yom-tov' ? 'from-royal-blue to-purple-600' : 'from-green-500 to-emerald-600') %}
+                {% set categoryLabel = event.category == 'chassidic' ? 'Chassidic' : (event.category == 'yom-tov' ? 'Yom Tov' : 'Spécial') %}
+
+                <div class="flex-shrink-0 w-80 sm:w-96 glass-card rounded-[25px] p-6 snap-start hover:scale-105 transition-transform duration-300">
+                    {# Category Badge #}
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-[15px] bg-gradient-to-r {{ categoryColor }} text-white text-xs font-bold mb-4">
+                        {{ categoryLabel }}
+                    </div>
+
+                    {# Event Details #}
+                    <h3 class="text-xl font-bold text-royal-blue mb-2">
+                        {{ event.title }}
+                    </h3>
+                    <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                        <span>📅</span>
+                        <span class="font-medium">{{ event.hebrewDate }}</span>
+                    </div>
+                    <div class="text-sm text-gray-500 mb-4">
+                        {{ event.gregorianDate }}
+                    </div>
+                    <p class="text-sm text-gray-700 mb-4">
+                        {{ event.description }}
+                    </p>
+
+                    {# Collector Badge #}
+                    {% if event.collectorBadge %}
+                        <div class="neo-card rounded-[20px] p-4 flex items-center gap-3 {{ not event.collectorBadge.unlocked ? 'opacity-60' : '' }}">
+                            <div class="text-3xl w-12 h-12 rounded-full flex items-center justify-center {{ event.collectorBadge.unlocked ? 'holographic-badge' : 'locked-badge bg-gray-300' }}">
+                                {{ event.collectorBadge.icon }}
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-bold text-royal-blue">
+                                    Badge Collector
+                                </div>
+                                <div class="text-xs text-gray-600">
+                                    {{ event.collectorBadge.name }}
+                                </div>
+                            </div>
+                            {% if not event.collectorBadge.unlocked %}
+                                <div class="text-xs text-gray-400">🔒</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    {# Collector Progress #}
+    <section class="glass-card rounded-[30px] p-6 sm:p-8">
+        <h3 class="text-xl font-bold text-royal-blue mb-4 flex items-center gap-2">
+            <span class="text-vibrant-orange">🏆</span>
+            Collection de Badges
+        </h3>
+
+        <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-gray-700">Progression</span>
+                <span class="font-bold text-royal-blue">
+                    {{ unlockedBadgesCount }} / {{ totalEvents }}
+                </span>
+            </div>
+            <div class="laser-progress-track h-4 w-full">
+                <div class="laser-progress-fill h-full transition-all duration-500" style="width: {{ (unlockedBadgesCount / totalEvents) * 100 }}%"></div>
+            </div>
+        </div>
+
+        <p class="text-sm text-gray-600 text-center">
+            Participe aux événements pour débloquer tous les badges collectors! 🏆
+        </p>
+    </section>
+</div>
+{% endblock %}

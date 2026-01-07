@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Lecture - {{ document.title }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8 h-full flex flex-col">
+    <div class="mb-4 flex items-center justify-between">
+        <a href="{{ path('app_library') }}" class="text-gk-blue-royal font-bold hover:underline flex items-center gap-2">
+            <span>⬅️</span> Retour à la bibliothèque
+        </a>
+        <h1 class="text-2xl font-bold text-gk-blue-royal">{{ document.title }}</h1>
+    </div>
+
+    <div class="flex-grow bg-white rounded-3xl shadow-clay border-4 border-white overflow-hidden relative mb-6 min-h-[60vh]">
+        {# PDF Viewer Placeholder #}
+        <iframe src="{{ document.pdfPath }}" class="w-full h-full absolute inset-0" frameborder="0"></iframe>
+
+        {# Fallback if no PDF path for demo #}
+        <div class="flex items-center justify-center h-full text-gray-400">
+            <p>Le PDF s'affichera ici...</p>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="{{ path('app_library_complete', {id: document.id}) }}" class="inline-block bg-green-500 text-white font-bold py-4 px-12 rounded-full shadow-lg btn-bounce hover:bg-green-600 transition text-2xl border-b-4 border-green-700 active:border-b-0 active:mt-1">
+            J'ai tout lu ! ✅
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+<div data-controller="mascot" class="fixed bottom-4 right-4 z-50 flex flex-col items-end pointer-events-none">
+    {# Speech Bubble #}
+    <div data-mascot-target="bubble" class="hidden bg-white p-4 rounded-2xl rounded-br-none shadow-lg border-2 border-gk-blue-royal mb-2 max-w-xs text-gk-blue-royal font-bold text-sm relative mr-8 pointer-events-auto">
+        Hello !
+    </div>
+
+    {# Mascot Container #}
+    <div data-mascot-target="container" class="w-32 h-32 md:w-48 md:h-48 pointer-events-auto cursor-pointer hover:scale-110 transition duration-300" data-action="click->mascot#celebrate"></div>
+</div>

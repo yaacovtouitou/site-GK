@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Livre d'Or{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gk-blue-royal mb-8">🛡️ Modération des Messages</h1>
+
+    <div class="bg-white rounded-3xl p-6 shadow-clay border-4 border-white">
+        {% if pendingMessages is empty %}
+            <p class="text-center text-gray-500 py-8">Tout est calme ! Aucun message en attente. 🍃</p>
+        {% else %}
+            <div class="space-y-4">
+                {% for msg in pendingMessages %}
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                        <div class="mb-4 md:mb-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="font-bold text-gk-blue-royal">{{ msg.pseudo }}</span>
+                                <span class="text-xs text-gray-400">le {{ msg.createdAt|date('d/m/Y H:i') }}</span>
+                            </div>
+                            <p class="text-gray-700">{{ msg.message }}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ path('admin_guestbook_approve', {id: msg.id}) }}" class="bg-green-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-green-600 transition shadow-sm">
+                                Valider ✅
+                            </a>
+                            <a href="{{ path('admin_guestbook_delete', {id: msg.id}) }}" class="bg-red-400 text-white px-4 py-2 rounded-xl font-bold hover:bg-red-500 transition shadow-sm" onclick="return confirm('Sûr de vouloir supprimer ?')">
+                                Supprimer 🗑️
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

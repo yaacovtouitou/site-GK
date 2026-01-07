@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ outing.title }} - Souvenirs{% endblock %}
+
+{% block body %}
+<div class="space-y-8 max-w-5xl mx-auto">
+    {# Back Button #}
+    <div>
+        <a href="{{ path('app_outings') }}" class="inline-flex items-center gap-2 text-royal-blue font-bold hover:underline">
+            <span>⬅️</span> Retour aux sorties
+        </a>
+    </div>
+
+    {# Header #}
+    <div class="text-center space-y-2">
+        <h1 class="text-3xl sm:text-4xl font-bold gradient-text">{{ outing.title }}</h1>
+    </div>
+
+    {# Gallery Carousel (Vertical Photos Optimized with Infinite Loop Logic) #}
+    <div class="glass-card rounded-[30px] p-4 sm:p-6 relative group">
+
+        {# Navigation Buttons #}
+        <button id="prevBtn" class="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-royal-blue p-3 rounded-full shadow-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
+            ⬅️
+        </button>
+        <button id="nextBtn" class="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-royal-blue p-3 rounded-full shadow-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">
+            ➡️
+        </button>
+
+        <div id="carousel" class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar" style="scroll-behavior: smooth;">
+            {% for photo in outing.photos %}
+                <div class="flex-shrink-0 w-64 sm:w-72 md:w-80 aspect-[3/4] rounded-[20px] overflow-hidden snap-center shadow-lg relative group/img">
+                    <img src="{{ photo }}" alt="Souvenir" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black/20 group-hover/img:bg-transparent transition-colors duration-300"></div>
+                </div>
+            {% endfor %}
+        </div>
+        <p class="text-center text-xs text-gray-400 mt-2">Fais défiler pour voir plus de photos ↔️</p>
+    </div>
+
+    {# Description #}
+    <div class="neo-card rounded-[25px] p-8 relative overflow-hidden">
+        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-gradient-to-br from-vibrant-orange to-gold rounded-full opacity-20 blur-2xl"></div>
+
+        <h2 class="text-2xl font-bold text-royal-blue mb-4 flex items-center gap-2">
+            <span>📝</span> Le récit de la journée
+        </h2>
+        <p class="text-gray-700 leading-relaxed text-lg">
+            {{ outing.description }}
+        </p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const carousel = document.getElementById('carousel');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        // Scroll amount (width of card + gap)
+        // Approximate width based on CSS classes (w-64 = 16rem = 256px) + gap (1rem = 16px)
+        // Better to calculate dynamically
+
+        const scrollAmount = () => {
+            const card = carousel.querySelector('div');
+            return card ? card.offsetWidth + 16 : 300;
+        };
+
+        nextBtn.addEventListener('click', () => {
+            const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+
+            if (carousel.scrollLeft >= maxScrollLeft - 10) {
+                // If at end, loop back to start
+                carousel.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                carousel.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (carousel.scrollLeft <= 10) {
+                // If at start, loop to end
+                carousel.scrollTo({ left: carousel.scrollWidth, behavior: 'smooth' });
+            } else {
+                carousel.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+            }
+        });
+
+        // Optional: Auto-scroll
+        let autoScroll = setInterval(() => {
+             const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+             if (carousel.scrollLeft >= maxScrollLeft - 10) {
+                 carousel.scrollTo({ left: 0, behavior: 'smooth' });
+             } else {
+                 carousel.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+             }
+        }, 3000); // Change image every 3 seconds
+
+        // Pause on hover
+        carousel.parentElement.addEventListener('mouseenter', () => clearInterval(autoScroll));
+        carousel.parentElement.addEventListener('mouseleave', () => {
+            autoScroll = setInterval(() => {
+                 const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+                 if (carousel.scrollLeft >= maxScrollLeft - 10) {
+                     carousel.scrollTo({ left: 0, behavior: 'smooth' });
+                 } else {
+                     carousel.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+                 }
+            }, 3000);
+        });
+    });
+</script>
+{% endblock %}

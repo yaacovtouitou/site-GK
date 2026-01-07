@@ -1,0 +1,190 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Missions - Géoula Kids{% endblock %}
+
+{% block body %}
+<div class="space-y-6 sm:space-y-8">
+    {# Header #}
+    <div class="text-center space-y-2">
+        <h1 class="text-3xl sm:text-4xl font-bold gradient-text flex items-center justify-center gap-3">
+            <span class="text-vibrant-orange">✨</span>
+            Mission Center
+        </h1>
+        <p class="text-sm sm:text-base text-gray-600">
+            Complète tes missions et gagne des points! 🎯
+        </p>
+    </div>
+
+    {# Stats Overview #}
+    <div class="grid sm:grid-cols-3 gap-4">
+        <div class="glass-card rounded-[20px] p-6 text-center">
+            <div class="text-3xl font-bold gradient-text mb-2" id="daily-stats">
+                {{ completedDaily }}/{{ totalDaily }}
+            </div>
+            <div class="text-sm text-gray-600">Missions Quotidiennes</div>
+        </div>
+
+        <div class="glass-card rounded-[20px] p-6 text-center">
+            <div class="text-3xl font-bold gradient-text mb-2" id="weekly-stats">
+                {{ completedWeekly }}/{{ totalWeekly }}
+            </div>
+            <div class="text-sm text-gray-600">Missions Hebdomadaires</div>
+        </div>
+
+        <div class="glass-card rounded-[20px] p-6 text-center">
+            <div class="text-3xl font-bold text-gold mb-2" id="total-points-display">
+                {{ totalPoints }}
+            </div>
+            <div class="text-sm text-gray-600">Points Gagnés</div>
+        </div>
+    </div>
+
+    {# Daily Missions #}
+    <section>
+        <h2 class="text-xl sm:text-2xl font-bold text-royal-blue mb-4 flex items-center gap-2">
+            <span class="text-vibrant-orange">🔥</span>
+            Missions Quotidiennes
+        </h2>
+        <div class="space-y-3">
+            {% for mission in dailyMissions %}
+                {% include 'mission/_card.html.twig' with {'mission': mission} %}
+            {% endfor %}
+        </div>
+    </section>
+
+    {# Weekly Missions #}
+    <section>
+        <h2 class="text-xl sm:text-2xl font-bold text-royal-blue mb-4 flex items-center gap-2">
+            <span class="text-gold">🎁</span>
+            Missions Hebdomadaires
+        </h2>
+        <div class="space-y-3">
+            {% for mission in weeklyMissions %}
+                {% include 'mission/_card.html.twig' with {'mission': mission} %}
+            {% endfor %}
+        </div>
+    </section>
+
+    {# Special Missions #}
+    <section>
+        <h2 class="text-xl sm:text-2xl font-bold text-royal-blue mb-4 flex items-center gap-2">
+            <span class="text-vibrant-orange">✨</span>
+            Missions Spéciales
+        </h2>
+        <div class="space-y-3">
+            {% for mission in specialMissions %}
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-vibrant-orange to-gold rounded-[20px] opacity-20 blur-xl"></div>
+                    <div class="relative">
+                        {% include 'mission/_card.html.twig' with {'mission': mission} %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+{# Celebration Pop-up #}
+<div id="celebration-modal" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <div class="bg-white rounded-[30px] p-8 text-center shadow-2xl transform scale-90 transition-transform duration-300 border-4 border-gold max-w-sm mx-4 relative z-10">
+        <div class="text-6xl mb-4 animate-bounce">🎉</div>
+        <h3 class="text-2xl font-bold text-royal-blue mb-2">Hazak !</h3>
+        <p class="text-gray-600 mb-4">Pour tes efforts, continue comme ça !</p>
+        <div class="inline-block bg-gold/20 text-gold font-bold px-6 py-2 rounded-full text-xl">
+            +<span id="modal-points">0</span> pts
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('celebration-modal');
+        const modalContent = modal.querySelector('div.bg-white');
+        const modalPoints = document.getElementById('modal-points');
+        const totalPointsDisplay = document.getElementById('total-points-display');
+        const dailyStatsDisplay = document.getElementById('daily-stats');
+        const weeklyStatsDisplay = document.getElementById('weekly-stats');
+
+        document.querySelectorAll('.mission-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const missionId = this.dataset.id;
+                const card = this.closest('.mission-card');
+
+                fetch(`/api/mission/toggle/${missionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update UI based on new state
+                        if (data.completed) {
+                            // Mark as completed
+                            card.classList.add('opacity-75');
+                            card.querySelector('.mission-title').classList.add('text-gray-500', 'line-through');
+                            card.querySelector('.mission-title').classList.remove('text-royal-blue');
+                            this.innerHTML = '✓';
+                            this.classList.remove('puffy-button-primary');
+                            this.classList.add('bg-gradient-to-br', 'from-green-400', 'to-green-600', 'text-white');
+
+                            // Show Pop-up
+                            showCelebration(data.pointsEarned);
+                        } else {
+                            // Mark as incomplete
+                            card.classList.remove('opacity-75');
+                            card.querySelector('.mission-title').classList.remove('text-gray-500', 'line-through');
+                            card.querySelector('.mission-title').classList.add('text-royal-blue');
+                            this.innerHTML = '○';
+                            this.classList.add('puffy-button-primary');
+                            this.classList.remove('bg-gradient-to-br', 'from-green-400', 'to-green-600', 'text-white');
+                        }
+
+                        // Update stats dynamically
+                        totalPointsDisplay.textContent = data.totalPoints;
+                        dailyStatsDisplay.textContent = `${data.completedDaily}/${data.totalDaily}`;
+                        weeklyStatsDisplay.textContent = `${data.completedWeekly}/${data.totalWeekly}`;
+                    }
+                });
+            });
+        });
+
+        function showCelebration(points) {
+            modalPoints.textContent = points;
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            modalContent.classList.remove('scale-90');
+            modalContent.classList.add('scale-100');
+
+            // Confetti effect (simple CSS/JS version)
+            createConfetti();
+
+            setTimeout(() => {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                modalContent.classList.remove('scale-100');
+                modalContent.classList.add('scale-90');
+            }, 2500);
+        }
+
+        function createConfetti() {
+            for(let i=0; i<30; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('fixed', 'w-3', 'h-3', 'z-50');
+                confetti.style.backgroundColor = ['#FFD700', '#FF6B35', '#4169E1'][Math.floor(Math.random()*3)];
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.transition = 'top 2s ease-out, transform 2s linear';
+                document.body.appendChild(confetti);
+
+                setTimeout(() => {
+                    confetti.style.top = '100vh';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                }, 10);
+
+                setTimeout(() => confetti.remove(), 2000);
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+<div x-data="{ isOpen: false, message: 'Shalom! Comment puis-je t\'aider aujourd\'hui? 🌟' }" class="fixed bottom-6 right-6 z-50">
+    {# Message Bubble #}
+    <div x-show="isOpen"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform translate-y-4"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform translate-y-4"
+         class="absolute bottom-20 right-0 w-64 mb-2">
+        <div class="glass-card p-4 rounded-[20px] shadow-lg bg-white/90">
+            <p class="text-sm text-royal-blue font-medium" x-text="message"></p>
+        </div>
+    </div>
+
+    {# Mascot Button #}
+    <button @click="isOpen = !isOpen; if(isOpen) message = ['Shalom! Comment puis-je t\'aider aujourd\'hui? 🌟', 'Continue comme ça! Tu es incroyable! ⭐', 'N\'oublie pas de terminer tes missions! 💪', 'Bravo! Tu progresses super bien! 🎉'][Math.floor(Math.random() * 4)]"
+            class="relative w-16 h-16 rounded-full bg-gradient-to-br from-vibrant-orange to-gold shadow-xl hover:shadow-2xl transition-all duration-300 floating pulse-glow flex items-center justify-center">
+        <div class="relative z-10 text-white text-2xl">
+            <span x-show="!isOpen">✨</span>
+            <span x-show="isOpen">💬</span>
+        </div>
+
+        {# Glow effect #}
+        <div class="absolute inset-0 rounded-full bg-vibrant-orange opacity-50 blur-xl animate-pulse"></div>
+    </button>
+</div>
+
+{# Alpine.js for simple interactivity without build step #}
+<script src="//unpkg.com/alpinejs" defer></script>

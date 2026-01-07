@@ -1,0 +1,31 @@
+:root {
+  /* Géoula Kids Color System */
+  --royal-blue: #002366;
+  --gold: #D4AF37;
+  --cyber-white: #F0F4F8;
+  --silver: #C0C0C0;
+  --vibrant-orange: #FF6B35;
+
+  /* Gradient colors for holographic effects */
+  --holographic-1: #FF6B35;
+  --holographic-2: #D4AF37;
+  --holographic-3: #002366;
+
+  --background: var(--cyber-white);
+  --foreground: var(--royal-blue);
+}
+
+/* Tailwind Custom Colors Mapping */
+.text-royal-blue { color: var(--royal-blue); }
+.bg-royal-blue { background-color: var(--royal-blue); }
+.border-royal-blue { border-color: var(--royal-blue); }
+
+.text-gold { color: var(--gold); }
+.bg-gold { background-color: var(--gold); }
+.border-gold { border-color: var(--gold); }
+
+.text-vibrant-orange { color: var(--vibrant-orange); }
+.bg-vibrant-orange { background-color: var(--vibrant-orange); }
+.border-vibrant-orange { border-color: var(--vibrant-orange); }
+
+.bg-cyber-white { background-color: var(--cyber-white); }

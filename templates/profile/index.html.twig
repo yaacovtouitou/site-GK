@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Coin Géoula{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-3xl p-8 shadow-clay border-4 border-white max-w-4xl mx-auto">
+        <div class="flex flex-col md:flex-row items-center gap-8">
+
+            {# Avatar Section #}
+            <div class="flex-shrink-0">
+                <div class="w-40 h-40 bg-gk-blue-sky rounded-full flex items-center justify-center border-8 border-gk-yellow-sun shadow-lg overflow-hidden relative">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar }}" alt="Avatar" class="w-full h-full object-cover">
+                    {% else %}
+                        <span class="text-8xl">😊</span>
+                    {% endif %}
+                    <div class="absolute bottom-0 right-0 bg-gk-gold text-white text-xs font-bold px-2 py-1 rounded-tl-lg border-t-2 border-l-2 border-white">
+                        Niv. {{ (user.totalPoints / 100)|round(0, 'floor') + 1 }}
+                    </div>
+                </div>
+            </div>
+
+            {# Stats Section #}
+            <div class="flex-grow text-center md:text-left w-full">
+                <h1 class="text-4xl font-bold text-gk-blue-royal mb-2">{{ user.pseudo }}</h1>
+                <p class="text-xl text-gray-500 font-bold mb-6">{{ user.currentRank }}</p>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gk-white-cream p-4 rounded-2xl shadow-sm border-2 border-transparent hover:border-gk-yellow-sun transition">
+                        <span class="block text-3xl mb-1">⭐</span>
+                        <span class="block text-2xl font-bold text-gk-blue-royal">{{ user.totalPoints }}</span>
+                        <span class="text-sm text-gray-500 font-bold">Points Totaux</span>
+                    </div>
+                    <div class="bg-gk-white-cream p-4 rounded-2xl shadow-sm border-2 border-transparent hover:border-gk-blue-sky transition">
+                        <span class="block text-3xl mb-1">⚡</span>
+                        <span class="block text-2xl font-bold text-gk-blue-royal">{{ user.energy }}%</span>
+                        <span class="text-sm text-gray-500 font-bold">Énergie</span>
+                    </div>
+                </div>
+
+                {# Progress Bar #}
+                <div class="relative pt-1">
+                    <div class="flex mb-2 items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-gk-blue-royal bg-gk-blue-sky/30">
+                                Progression vers le prochain grade
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-semibold inline-block text-gk-blue-royal">
+                                {{ user.totalPoints % 100 }}%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden h-4 mb-4 text-xs flex rounded-full bg-gray-200 shadow-inner">
+                        <div style="width:{{ user.totalPoints % 100 }}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gk-yellow-sun transition-all duration-500 ease-out"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

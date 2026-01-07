@@ -1,0 +1,27 @@
+<div class="neo-card rounded-[20px] p-5 transition-all duration-300 mission-card {{ mission.completed ? 'opacity-75' : 'hover:scale-[1.02]' }}">
+    <div class="flex items-start gap-4">
+        <div class="flex-1">
+            <h4 class="font-bold text-base mb-1 mission-title {{ mission.completed ? 'text-gray-500 line-through' : 'text-royal-blue' }}">
+                {{ mission.title }}
+            </h4>
+            <p class="text-sm text-gray-600 mb-3">
+                {{ mission.description }}
+            </p>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-[10px] bg-gold/20 text-gold font-bold text-sm">
+                    <span>✨</span>
+                    +{{ mission.points }} pts
+                </span>
+            </div>
+        </div>
+
+        <div class="flex-shrink-0">
+            <button
+                class="w-14 h-14 rounded-full flex items-center justify-center text-2xl mission-toggle-btn transition-all duration-300 {{ mission.completed ? 'bg-gradient-to-br from-green-400 to-green-600 text-white' : 'puffy-button-primary' }}"
+                data-id="{{ mission.id }}"
+            >
+                {{ mission.completed ? '✓' : '○' }}
+            </button>
+        </div>
+    </div>
+</div>

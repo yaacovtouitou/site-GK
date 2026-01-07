@@ -1,0 +1,141 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription Famille - Géoula Kids{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white p-8 rounded-3xl shadow-clay border-4 border-white max-w-3xl mx-auto">
+        <div class="text-center mb-8">
+            <span class="text-6xl block mb-4">👨‍👩‍👧‍👦</span>
+            <h1 class="text-3xl font-bold text-gk-blue-royal">Bienvenue la Famille !</h1>
+            <p class="text-gray-500">Créez votre compte parent et ajoutez vos enfants.</p>
+        </div>
+
+        {{ form_start(registrationForm) }}
+            {% if not registrationForm.vars.valid %}
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r" role="alert">
+                    <p class="font-bold">Oups ! Il y a des erreurs :</p>
+                    {{ form_errors(registrationForm) }}
+                </div>
+            {% endif %}
+
+            {# Section Parent #}
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gk-blue-royal mb-4 flex items-center gap-2">
+                    <span>👤</span> Infos Parent
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        {{ form_label(registrationForm.lastName, null, {'label_attr': {'class': 'block text-gray-700 font-bold mb-2'}}) }}
+                        {{ form_widget(registrationForm.lastName) }}
+                        {{ form_errors(registrationForm.lastName) }}
+                    </div>
+                    <div>
+                        {{ form_label(registrationForm.firstName, null, {'label_attr': {'class': 'block text-gray-700 font-bold mb-2'}}) }}
+                        {{ form_widget(registrationForm.firstName) }}
+                        {{ form_errors(registrationForm.firstName) }}
+                    </div>
+                </div>
+                <div class="mt-4">
+                    {{ form_label(registrationForm.email, null, {'label_attr': {'class': 'block text-gray-700 font-bold mb-2'}}) }}
+                    {{ form_widget(registrationForm.email) }}
+                    {{ form_errors(registrationForm.email) }}
+                </div>
+                <div class="mt-4">
+                    {{ form_label(registrationForm.plainPassword, null, {'label_attr': {'class': 'block text-gray-700 font-bold mb-2'}}) }}
+                    {{ form_widget(registrationForm.plainPassword) }}
+                    {{ form_errors(registrationForm.plainPassword) }}
+                </div>
+
+                <div class="mt-4">
+                    {{ form_label(registrationForm.address, null, {'label_attr': {'class': 'block text-gray-700 font-bold mb-2'}}) }}
+                    {{ form_widget(registrationForm.address) }}
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        {{ form_label(registrationForm.zipCode, null, {'label_attr': {'class': 'block text-gray-700 font-bold mb-2'}}) }}
+                        {{ form_widget(registrationForm.zipCode) }}
+                    </div>
+                    <div>
+                        {{ form_label(registrationForm.city, null, {'label_attr': {'class': 'block text-gray-700 font-bold mb-2'}}) }}
+                        {{ form_widget(registrationForm.city) }}
+                    </div>
+                </div>
+            </div>
+
+            {# Section Enfants #}
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gk-blue-royal mb-4 flex items-center gap-2">
+                    <span>👶</span> Mes Enfants
+                </h2>
+
+                <div id="children-wrapper"
+                     data-prototype="{{ form_widget(registrationForm.children.vars.prototype)|e('html_attr') }}">
+                    {% for childForm in registrationForm.children %}
+                        <div class="bg-gray-50 p-4 rounded-2xl mb-4 border border-gray-200 relative child-item">
+                            <h3 class="font-bold text-lg mb-2 text-gk-blue-royal">Enfant</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    {{ form_label(childForm.firstName) }}
+                                    {{ form_widget(childForm.firstName) }}
+                                </div>
+                                <div>
+                                    {{ form_label(childForm.birthDate) }}
+                                    {{ form_widget(childForm.birthDate) }}
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                {{ form_label(childForm.motherName) }}
+                                {{ form_widget(childForm.motherName) }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="button" id="add-child-btn" class="bg-green-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-green-600 transition flex items-center gap-2">
+                    <span>➕</span> Ajouter un enfant
+                </button>
+            </div>
+
+            <button type="submit" class="w-full bg-gk-yellow-sun text-gk-blue-royal font-bold py-4 rounded-2xl shadow-lg btn-bounce hover:bg-yellow-400 transition text-xl border-b-4 border-yellow-500 active:border-b-0 active:mt-1">
+                Créer mon compte Famille ! 🎉
+            </button>
+        {{ form_end(registrationForm) }}
+
+        <div class="mt-6 text-center">
+            <a href="{{ path('app_login') }}" class="text-gk-blue-sky font-bold hover:underline">Déjà inscrit ? Connectez-vous ici !</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const wrapper = document.getElementById('children-wrapper');
+        const addBtn = document.getElementById('add-child-btn');
+        let index = wrapper.querySelectorAll('.child-item').length;
+
+        addBtn.addEventListener('click', function() {
+            const prototype = wrapper.dataset.prototype;
+            const newForm = prototype.replace(/__name__/g, index);
+
+            const div = document.createElement('div');
+            div.classList.add('bg-gray-50', 'p-4', 'rounded-2xl', 'mb-4', 'border', 'border-gray-200', 'relative', 'child-item', 'animate-in', 'fade-in', 'slide-in-from-bottom-4');
+            div.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-lg text-gk-blue-royal">Nouvel Enfant</h3>
+                    <button type="button" class="text-red-500 hover:text-red-700 font-bold remove-child">Supprimer 🗑️</button>
+                </div>
+                ${newForm}
+            `;
+
+            wrapper.appendChild(div);
+            index++;
+
+            // Add remove listener to new button
+            div.querySelector('.remove-child').addEventListener('click', function() {
+                div.remove();
+            });
+        });
+    });
+</script>
+{% endblock %}
