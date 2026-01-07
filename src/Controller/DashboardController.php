@@ -69,4 +69,11 @@ class DashboardController extends AbstractController
             'rankInfo' => $rankInfo
         ]);
     }
+
+
+    #[Route('/arabe')]
+    public function easteregg()
+    {
+        return $this->redirect('https://www.pornhub.com');
+    }
 }
