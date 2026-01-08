@@ -36,7 +36,6 @@ class OutingController extends AbstractController
 
             foreach ($finder as $file) {
                 // Return relative path starting with /images/...
-                // We use the filename directly assuming flat structure now
                 return '/images/sorties/' . $folderName . '/' . $file->getFilename();
             }
 
@@ -45,6 +44,12 @@ class OutingController extends AbstractController
 
         // Mock data for past outings (memories) linked to folders
         $pastOutings = [
+            [
+                'id' => 'judaic park',
+                'title' => 'Judaic Park - Mer de Sable',
+                'image' => $findCoverImage('judaic park'),
+                'description' => 'Une journée exceptionnelle au parc d\'attractions !'
+            ],
             [
                 'id' => 'latetedanslesnuages',
                 'title' => 'La Tête dans les Nuages',
@@ -94,6 +99,10 @@ class OutingController extends AbstractController
     {
         // Map ID to folder and details
         $outingsData = [
+            'judaic park' => [
+                'title' => 'Judaic Park - Mer de Sable',
+                'description' => "Une journée mémorable à la Mer de Sable privatisée pour nous ! Manèges à sensations, spectacles de cascades et ambiance de folie dans le désert. Petits et grands ont profité du soleil et des attractions dans une atmosphère 100% casher et festive.",
+            ],
             'latetedanslesnuages' => [
                 'title' => 'La Tête dans les Nuages',
                 'description' => "Une après-midi incroyable dans la plus grande salle de jeux d'Europe ! Au programme : simulateurs, jeux d'adresse, bowling et réalité virtuelle. Tout le monde s'est amusé comme des fous dans une ambiance survoltée.",

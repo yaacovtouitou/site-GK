@@ -85,11 +85,11 @@ class LibraryController extends AbstractController
         // Calculate global progress
         $annualProgress = ($totalParachiotCount > 0) ? ($completedParachiotCount / $totalParachiotCount) * 100 : 0;
 
-        // Mock document for the reader
+        // Use the real PDF file
         $currentDocument = [
             'title' => 'Paracha ' . $currentParachaName,
-            'pdfUrl' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-            'pageCount' => 12
+            'pdfUrl' => '/images/feuillet/Géoula Kids Chémot 5782.pdf', // Updated path
+            'pageCount' => 4 // Approximate or dynamic if possible
         ];
 
         // Prepare simple book counts for the template
