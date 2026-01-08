@@ -64,6 +64,43 @@
         </div>
     </section>
 
+    {# Testimonials Slider #}
+    <section class="px-2 sm:px-0 relative group/slider">
+        <h2 class="text-xl sm:text-2xl font-bold text-royal-blue mb-4 sm:mb-6 flex items-center gap-2 px-2 sm:px-0">
+            <span class="text-gold">💬</span> Ils aiment Géoula Kids
+        </h2>
+
+        <div class="relative">
+            {# Navigation Buttons #}
+            <button id="prev-testimonial" class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-royal-blue p-3 rounded-full shadow-lg transition-all opacity-0 group-hover/slider:opacity-100 focus:opacity-100 -ml-4 sm:-ml-6">
+                ⬅️
+            </button>
+            <button id="next-testimonial" class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-royal-blue p-3 rounded-full shadow-lg transition-all opacity-0 group-hover/slider:opacity-100 focus:opacity-100 -mr-4 sm:-mr-6">
+                ➡️
+            </button>
+
+            <div id="testimonials-carousel" class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar" style="scroll-behavior: smooth;">
+                {% for testimonial in testimonials %}
+                    <div class="flex-shrink-0 w-80 sm:w-96 glass-card rounded-[20px] p-6 relative snap-center">
+                        <div class="absolute -top-3 -left-3 text-4xl text-gold">❝</div>
+                        <p class="text-gray-700 italic mb-4 text-sm sm:text-base relative z-10 line-clamp-4">
+                            "{{ testimonial.message }}"
+                        </p>
+                        <div class="flex items-center gap-3 mt-auto">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-royal-blue to-gold flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                {{ testimonial.pseudo|first|upper }}
+                            </div>
+                            <div>
+                                <div class="font-bold text-royal-blue text-sm">{{ testimonial.pseudo }}</div>
+                                <div class="text-xs text-gray-500">{{ testimonial.createdAt|date('d/m/Y') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
     {# Call to Action #}
     <section class="glass-card rounded-[20px] sm:rounded-[30px] p-6 sm:p-8 md:p-10 text-center mx-2 sm:mx-0">
         <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-royal-blue mb-3">
@@ -77,4 +114,59 @@
         </a>
     </section>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const carousel = document.getElementById('testimonials-carousel');
+        const prevBtn = document.getElementById('prev-testimonial');
+        const nextBtn = document.getElementById('next-testimonial');
+        let autoScroll;
+
+        const scrollAmount = 320; // Approx card width
+
+        const startAutoScroll = () => {
+            autoScroll = setInterval(() => {
+                const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+                if (carousel.scrollLeft >= maxScrollLeft - 10) {
+                    carousel.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                }
+            }, 4000); // 4 seconds
+        };
+
+        const stopAutoScroll = () => {
+            clearInterval(autoScroll);
+        };
+
+        // Manual Navigation
+        prevBtn.addEventListener('click', () => {
+            stopAutoScroll();
+            carousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            // Restart auto-scroll after interaction (optional, maybe better to keep stopped)
+            // setTimeout(startAutoScroll, 5000);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            stopAutoScroll();
+            const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+            if (carousel.scrollLeft >= maxScrollLeft - 10) {
+                carousel.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+        });
+
+        // Start scrolling
+        startAutoScroll();
+
+        // Pause on hover/touch
+        carousel.addEventListener('mouseenter', stopAutoScroll);
+        carousel.addEventListener('touchstart', stopAutoScroll);
+
+        // Resume on leave
+        carousel.addEventListener('mouseleave', startAutoScroll);
+        carousel.addEventListener('touchend', startAutoScroll);
+    });
+</script>
 {% endblock %}

@@ -15,35 +15,16 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class GuestbookController extends AbstractController
 {
     #[Route('/guestbook', name: 'app_guestbook')]
-    public function index(Request $request, EntityManagerInterface $entityManager, GuestbookRepository $guestbookRepository): Response
+    public function index(GuestbookRepository $guestbookRepository): Response
     {
-        $guestbook = new Guestbook();
-
-        // Pre-fill pseudo if user is logged in
-        if ($this->getUser()) {
-            $guestbook->setPseudo($this->getUser()->getUserIdentifier());
-        }
-
-        $form = $this->createForm(GuestbookType::class, $guestbook);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($guestbook);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Ton message a été envoyé ! Il apparaîtra bientôt après validation. 💌');
-
-            return $this->redirectToRoute('app_guestbook');
-        }
-
+        // Only display approved messages, no form handling anymore
         return $this->render('guestbook/index.html.twig', [
-            'guestbookForm' => $form,
             'messages' => $guestbookRepository->findApprovedMessages(),
         ]);
     }
 
     #[Route('/admin/guestbook', name: 'admin_guestbook')]
-    #[IsGranted('ROLE_ADMIN')] // Ensure you have a way to grant this role or remove for dev
+    #[IsGranted('ROLE_ADMIN')]
     public function admin(GuestbookRepository $guestbookRepository): Response
     {
         return $this->render('guestbook/admin.html.twig', [

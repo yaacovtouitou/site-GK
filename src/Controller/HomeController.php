@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\GuestbookRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -9,7 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    public function index(): Response
+    public function index(GuestbookRepository $guestbookRepository): Response
     {
         // Mock data for news slider
         $newsItems = [
@@ -45,9 +46,25 @@ class HomeController extends AbstractController
             ['id' => 'badges', 'title' => 'Mes Badges', 'description' => 'Collection & Trophées', 'icon' => 'trophy', 'color' => 'from-gold to-royal-blue', 'route' => 'app_dashboard']
         ];
 
+        // Fetch latest 10 approved guestbook messages
+        $testimonials = $guestbookRepository->findBy(['isApproved' => true], ['createdAt' => 'DESC'], 10);
+
+        // If no testimonials, add mocks for display
+        if (empty($testimonials)) {
+            $testimonials = [
+                (object)['pseudo' => 'Sarah', 'message' => 'Géoula Kids est génial ! J\'adore les jeux et les missions.', 'createdAt' => new \DateTime('-2 days')],
+                (object)['pseudo' => 'David', 'message' => 'Merci pour ce site incroyable. J\'apprends beaucoup sur la Torah.', 'createdAt' => new \DateTime('-5 days')],
+                (object)['pseudo' => 'Maman de Léa', 'message' => 'Une plateforme ludique et éducative parfaite pour nos enfants.', 'createdAt' => new \DateTime('-1 week')],
+                (object)['pseudo' => 'Yossef', 'message' => 'Les vidéos sont super bien faites, bravo !', 'createdAt' => new \DateTime('-2 weeks')],
+                (object)['pseudo' => 'Famille Cohen', 'message' => 'Nos enfants se régalent chaque jour avec les missions.', 'createdAt' => new \DateTime('-3 weeks')],
+                (object)['pseudo' => 'Rivka', 'message' => 'J\'ai enfin compris la Paracha grâce à vous !', 'createdAt' => new \DateTime('-1 month')],
+            ];
+        }
+
         return $this->render('home/index.html.twig', [
             'newsItems' => $newsItems,
             'quickAccessTiles' => $quickAccessTiles,
+            'testimonials' => $testimonials
         ]);
     }
 }
