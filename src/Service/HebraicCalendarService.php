@@ -7,8 +7,10 @@ use App\Entity\User;
 use App\Repository\BadgeRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class HebraicCalendarService
 {
@@ -18,7 +20,9 @@ class HebraicCalendarService
         private EntityManagerInterface $entityManager,
         private BadgeRepository $badgeRepository,
         private UserRepository $userRepository,
-        private CacheInterface $cache
+        private CacheInterface $cache,
+        private HttpClientInterface $httpClient,
+        private LoggerInterface $logger
     ) {}
 
     /**
@@ -28,20 +32,27 @@ class HebraicCalendarService
     public function getCurrentParacha(): array
     {
         return $this->cache->get('current_paracha', function (ItemInterface $item) {
-            $item->expiresAfter(3600 * 12); // Cache de 12 heures
+            // Par défaut, cache de 12h
+            $item->expiresAfter(3600 * 12);
 
             try {
-                // Chargement du flux RSS
-                // En production, utiliser HttpClient est mieux, mais simplexml suffit pour ce MVP
-                $rss = @simplexml_load_file(self::HEBCAL_RSS_URL);
+                // Utilisation de HttpClient (plus robuste que simplexml_load_file)
+                $response = $this->httpClient->request('GET', self::HEBCAL_RSS_URL);
+
+                if ($response->getStatusCode() !== 200) {
+                    throw new \Exception("Erreur HTTP Hebcal: " . $response->getStatusCode());
+                }
+
+                $content = $response->getContent();
+                $rss = @simplexml_load_string($content);
 
                 if ($rss === false) {
-                    throw new \Exception("Impossible de charger le flux RSS Hebcal.");
+                    throw new \Exception("Impossible de parser le XML Hebcal.");
                 }
 
                 // Le premier item est généralement la paracha de la semaine à venir ou en cours
-                $item = $rss->channel->item[0];
-                $title = (string)$item->title; // Ex: "Parachah Chemot - 10 janvier 2026"
+                $rssItem = $rss->channel->item[0];
+                $title = (string)$rssItem->title; // Ex: "Parachah Chemot - 10 janvier 2026"
 
                 // Extraction du nom de la Paracha (tout ce qui est avant le tiret)
                 $parts = explode('-', $title);
@@ -53,12 +64,18 @@ class HebraicCalendarService
                 return [
                     'name' => $parachaName,
                     'full_title' => $title,
-                    'date' => (string)$item->pubDate,
-                    'description' => (string)$item->description
+                    'date' => (string)$rssItem->pubDate,
+                    'description' => (string)$rssItem->description
                 ];
 
             } catch (\Exception $e) {
-                // Fallback en cas d'erreur (ex: pas d'internet)
+                // En cas d'erreur, on réduit le cache à 5 minutes pour réessayer rapidement
+                $item->expiresAfter(300);
+
+                // Log l'erreur pour le débogage
+                $this->logger->error('Erreur récupération Paracha: ' . $e->getMessage());
+
+                // Fallback
                 return [
                     'name' => 'Bereshit', // Valeur par défaut
                     'full_title' => 'Parachah Bereshit (Mode Hors Ligne)',
