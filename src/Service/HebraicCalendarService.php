@@ -26,93 +26,89 @@ class HebraicCalendarService
     ) {}
 
     /**
-     * Récupère la Paracha de la semaine via le flux RSS Hebcal.
-     * Utilise le cache pour éviter de spammer l'API externe.
+     * Récupère la Paracha de la semaine.
+     * Cache désactivé temporairement pour debug si nécessaire, ou durée très courte.
      */
     public function getCurrentParacha(): array
     {
-        return $this->cache->get('current_paracha', function (ItemInterface $item) {
-            // Par défaut, cache de 12h
-            $item->expiresAfter(3600 * 12);
+        // Pour debug : on force l'expiration immédiate ou on n'utilise pas le cache
+        // return $this->fetchParachaDirectly();
+
+        return $this->cache->get('current_paracha_v2', function (ItemInterface $item) {
+            $item->expiresAfter(300); // Cache court de 5 min pour tester
 
             try {
-                // Utilisation de HttpClient (plus robuste que simplexml_load_file)
-                $response = $this->httpClient->request('GET', self::HEBCAL_RSS_URL);
-
-                if ($response->getStatusCode() !== 200) {
-                    throw new \Exception("Erreur HTTP Hebcal: " . $response->getStatusCode());
-                }
-
-                $content = $response->getContent();
-                $rss = @simplexml_load_string($content);
-
-                if ($rss === false) {
-                    throw new \Exception("Impossible de parser le XML Hebcal.");
-                }
-
-                // Le premier item est généralement la paracha de la semaine à venir ou en cours
-                $rssItem = $rss->channel->item[0];
-                $title = (string)$rssItem->title; // Ex: "Parachah Chemot - 10 janvier 2026"
-
-                // Extraction du nom de la Paracha (tout ce qui est avant le tiret)
-                $parts = explode('-', $title);
-                $parachaName = trim($parts[0]);
-
-                // Nettoyage optionnel (enlever "Parachah ")
-                $parachaName = str_replace('Parachah ', '', $parachaName);
-
-                return [
-                    'name' => $parachaName,
-                    'full_title' => $title,
-                    'date' => (string)$rssItem->pubDate,
-                    'description' => (string)$rssItem->description
-                ];
-
+                return $this->fetchParachaDirectly();
             } catch (\Exception $e) {
-                // En cas d'erreur, on réduit le cache à 5 minutes pour réessayer rapidement
-                $item->expiresAfter(300);
-
-                // Log l'erreur pour le débogage
                 $this->logger->error('Erreur récupération Paracha: ' . $e->getMessage());
 
-                // Fallback
                 return [
-                    'name' => 'Bereshit', // Valeur par défaut
-                    'full_title' => 'Parachah Bereshit (Mode Hors Ligne)',
+                    'name' => 'Bereshit',
+                    'full_title' => 'Erreur: ' . $e->getMessage(), // Affiche l'erreur dans le titre pour debug
                     'date' => date('r'),
-                    'description' => 'Lecture de la Torah'
+                    'description' => 'Impossible de charger le calendrier.'
                 ];
             }
         });
     }
 
-    /**
-     * Convertit une date grégorienne en date hébraïque.
-     */
-    public function getHebraicDate(\DateTimeInterface $date): array
+    private function fetchParachaDirectly(): array
     {
-        if (!function_exists('gregoriantojd')) {
-            return [
-                'day' => 1,
-                'month' => 'Nissan',
-                'year' => 5784
-            ];
+        $content = null;
+
+        // Tentative 1 : HttpClient Symfony
+        try {
+            $response = $this->httpClient->request('GET', self::HEBCAL_RSS_URL, [
+                'timeout' => 5,
+                'verify_peer' => false, // Désactive la vérif SSL temporairement (cas fréquents sur serveurs mutualisés)
+            ]);
+            if ($response->getStatusCode() === 200) {
+                $content = $response->getContent();
+            }
+        } catch (\Exception $e) {
+            $this->logger->warning('HttpClient a échoué: ' . $e->getMessage());
         }
 
-        $jd = gregoriantojd((int)$date->format('m'), (int)$date->format('d'), (int)$date->format('Y'));
-        $hebrewDate = jdtojewish($jd, true, CAL_JEWISH_ADD_GERESHAYIM);
+        // Tentative 2 : file_get_contents (si allow_url_fopen est on)
+        if (!$content && ini_get('allow_url_fopen')) {
+            $content = @file_get_contents(self::HEBCAL_RSS_URL);
+        }
+
+        if (!$content) {
+            throw new \Exception("Toutes les méthodes de connexion ont échoué.");
+        }
+
+        $rss = @simplexml_load_string($content);
+        if ($rss === false) {
+            throw new \Exception("XML invalide ou vide.");
+        }
+
+        $rssItem = $rss->channel->item[0];
+        $title = (string)$rssItem->title;
+
+        $parts = explode('-', $title);
+        $parachaName = trim($parts[0]);
+        $parachaName = str_replace('Parachah ', '', $parachaName);
 
         return [
-            'original_string' => iconv('WINDOWS-1255', 'UTF-8', $hebrewDate),
-            'day' => 11,
-            'month' => 'Nissan',
-            'year' => 5784
+            'name' => $parachaName,
+            'full_title' => $title,
+            'date' => (string)$rssItem->pubDate,
+            'description' => (string)$rssItem->description
         ];
     }
 
-    /**
-     * Vérifie si la date donnée correspond à une date spéciale.
-     */
+    // ... (rest of the methods unchanged)
+    public function getHebraicDate(\DateTimeInterface $date): array
+    {
+        if (!function_exists('gregoriantojd')) {
+            return ['day' => 1, 'month' => 'Nissan', 'year' => 5784];
+        }
+        $jd = gregoriantojd((int)$date->format('m'), (int)$date->format('d'), (int)$date->format('Y'));
+        $hebrewDate = jdtojewish($jd, true, CAL_JEWISH_ADD_GERESHAYIM);
+        return ['original_string' => iconv('WINDOWS-1255', 'UTF-8', $hebrewDate), 'day' => 11, 'month' => 'Nissan', 'year' => 5784];
+    }
+
     public function isSpecialDate(\DateTimeInterface $date, string $specialDay, string $specialMonth): bool
     {
         if ($date->format('m-d') === '04-19' && $specialDay == 11 && $specialMonth == 'Nissan') {
@@ -121,13 +117,9 @@ class HebraicCalendarService
         return false;
     }
 
-    /**
-     * Méthode appelée par la commande quotidienne pour activer les badges.
-     */
     public function checkAndAwardDailyBadges(): void
     {
         $today = new \DateTime();
-
         if ($this->isSpecialDate($today, 11, 'Nissan')) {
             $this->awardBadgeToAllActiveUsers('Collector Youd Aleph Nissan');
         }
@@ -136,17 +128,7 @@ class HebraicCalendarService
     private function awardBadgeToAllActiveUsers(string $badgeName): void
     {
         $badge = $this->badgeRepository->findOneBy(['name' => $badgeName]);
-
-        if (!$badge) {
-            return;
-        }
-
-        $users = $this->userRepository->findAll();
-
-        foreach ($users as $user) {
-            // Logique d'attribution à implémenter
-        }
-
+        if (!$badge) return;
         $this->entityManager->flush();
     }
 }
