@@ -3,53 +3,50 @@
 {% block title %}Géoula Run - Cours vers la Géoula !{% endblock %}
 
 {% block body %}
-<div class="flex items-center justify-center min-h-[80vh] py-8 bg-gradient-to-b from-cyan-100 to-blue-200">
-    <div id="game-container" class="relative w-full max-w-4xl h-[500px] bg-white rounded-[30px] shadow-2xl overflow-hidden border-8 border-royal-blue">
+<div class="flex items-center justify-center min-h-[80vh] py-4 sm:py-8 bg-gradient-to-b from-cyan-100 to-blue-200 px-2 sm:px-4">
+    <div id="game-container" class="relative w-full max-w-4xl aspect-[16/9] bg-white rounded-[20px] sm:rounded-[30px] shadow-2xl overflow-hidden border-4 sm:border-8 border-royal-blue">
 
         {# HUD #}
-        <div class="absolute top-4 left-4 z-10 flex gap-4">
-            <div class="bg-white/90 backdrop-blur px-6 py-3 rounded-full font-bold text-royal-blue shadow-lg border-2 border-royal-blue/10 text-xl">
+        <div class="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex gap-2 sm:gap-4">
+            <div class="bg-white/90 backdrop-blur px-3 py-1 sm:px-6 sm:py-3 rounded-full font-bold text-royal-blue shadow-lg border-2 border-royal-blue/10 text-xs sm:text-xl">
                 Score: <span id="score">0</span>
             </div>
-            <div class="bg-white/90 backdrop-blur px-6 py-3 rounded-full font-bold text-gold shadow-lg border-2 border-gold/10 text-xl flex items-center gap-2 overflow-hidden">
-                {# Zoomed Coin Image #}
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <img src="{{ asset('images/tsedaka-run/pieces-run.png') }}" alt="Mitzvot" class="w-full h-full object-cover transform scale-150">
-                </div>
+            <div class="bg-white/90 backdrop-blur px-3 py-1 sm:px-6 sm:py-3 rounded-full font-bold text-gold shadow-lg border-2 border-gold/10 text-xs sm:text-xl flex items-center gap-1 sm:gap-2">
+                <img src="{{ asset('images/tsedaka-run/pieces-run.png') }}" alt="Mitzvot" class="w-4 h-4 sm:w-8 sm:h-8 object-contain">
                 <span id="mitzvot">0</span>
             </div>
         </div>
 
         {# Canvas #}
-        <canvas id="gameCanvas" width="900" height="500" class="w-full h-full"></canvas>
+        <canvas id="gameCanvas" class="w-full h-full block"></canvas>
 
         {# Start Screen #}
-        <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-20 backdrop-blur-sm">
-            <h1 class="text-6xl font-bold text-white mb-6 neon-gold drop-shadow-lg">Géoula Run 🏃‍♂️</h1>
-            <p class="text-white text-2xl mb-10 font-medium">Appuie sur ESPACE ou clique pour sauter !</p>
-            <button onclick="startGame()" class="puffy-button-primary px-10 py-5 text-2xl rounded-[25px] font-bold animate-bounce shadow-xl hover:scale-105 transition-transform">
+        <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-20 backdrop-blur-sm p-4 text-center">
+            <h1 class="text-3xl sm:text-6xl font-bold text-white mb-4 sm:mb-6 neon-gold drop-shadow-lg">Géoula Run 🏃‍♂️</h1>
+            <p class="text-white text-sm sm:text-2xl mb-6 sm:mb-10 font-medium">Appuie sur l'écran ou ESPACE pour sauter !</p>
+            <button onclick="startGame()" class="puffy-button-primary px-6 py-3 sm:px-10 sm:py-5 text-lg sm:text-2xl rounded-[15px] sm:rounded-[25px] font-bold animate-bounce shadow-xl hover:scale-105 transition-transform">
                 COMMENCER
             </button>
         </div>
 
         {# Game Over Screen #}
-        <div id="game-over-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 z-20 hidden backdrop-blur-md">
-            <h2 class="text-5xl font-bold text-white mb-4">Oups ! 🤕</h2>
-            <p class="text-white/80 mb-8 text-xl">Tu as trébuché...</p>
+        <div id="game-over-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 z-20 hidden backdrop-blur-md p-4">
+            <h2 class="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4">Oups ! 🤕</h2>
+            <p class="text-white/80 mb-4 sm:mb-8 text-base sm:text-xl">Tu as trébuché...</p>
 
-            <div class="bg-white rounded-[30px] p-8 mb-8 text-center w-80 shadow-2xl transform scale-110">
-                <p class="text-gray-500 text-sm uppercase tracking-wider font-bold mb-2">Score Final</p>
-                <p class="text-6xl font-black text-royal-blue gradient-text" id="final-score">0</p>
-                <div class="mt-4 inline-block bg-gold/20 text-gold px-4 py-1 rounded-full font-bold text-lg border border-gold/30">
+            <div class="bg-white rounded-[20px] sm:rounded-[30px] p-4 sm:p-8 mb-4 sm:mb-8 text-center w-64 sm:w-80 shadow-2xl transform scale-100 sm:scale-110">
+                <p class="text-gray-500 text-xs sm:text-sm uppercase tracking-wider font-bold mb-1 sm:mb-2">Score Final</p>
+                <p class="text-4xl sm:text-6xl font-black text-royal-blue gradient-text" id="final-score">0</p>
+                <div class="mt-2 sm:mt-4 inline-block bg-gold/20 text-gold px-3 py-1 sm:px-4 sm:py-1 rounded-full font-bold text-sm sm:text-lg border border-gold/30">
                     +<span id="points-earned">0</span> pts gagnés
                 </div>
             </div>
 
-            <div class="flex gap-6">
-                <button onclick="resetGame()" class="puffy-button-gold px-8 py-4 rounded-[20px] font-bold text-lg shadow-lg hover:scale-105 transition-transform">
+            <div class="flex gap-3 sm:gap-6">
+                <button onclick="resetGame()" class="puffy-button-gold px-4 py-2 sm:px-8 sm:py-4 rounded-[15px] sm:rounded-[20px] font-bold text-sm sm:text-lg shadow-lg hover:scale-105 transition-transform">
                     REJOUER 🔄
                 </button>
-                <a href="{{ path('app_gaming_zone') }}" class="puffy-button px-8 py-4 rounded-[20px] font-bold text-lg shadow-lg hover:scale-105 transition-transform">
+                <a href="{{ path('app_gaming_zone') }}" class="puffy-button px-4 py-2 sm:px-8 sm:py-4 rounded-[15px] sm:rounded-[20px] font-bold text-sm sm:text-lg shadow-lg hover:scale-105 transition-transform">
                     QUITTER
                 </a>
             </div>
@@ -102,14 +99,16 @@
     const imgPlayerRaw = new Image();
     imgPlayerRaw.src = "{{ asset('images/tsedaka-run/perso-run.png') }}";
 
-    // Increased offset to fix floating
-    const playerVisualOffset = 25;
+    // Scaling factor based on canvas size
+    let scale = 1;
+
+    // Player visual offset to fix floating (positive value moves down)
+    const basePlayerVisualOffset = 25;
+    let playerVisualOffset = basePlayerVisualOffset;
 
     removeWhiteBackground(imgPlayerRaw, (processedImg, w, h) => {
         imgPlayerProcessed = processedImg;
-        const ratio = h / w;
-        player.height = player.width * ratio;
-        player.y = groundY - player.height + playerVisualOffset;
+        // Dimensions will be set in resize()
     });
 
     let imgCoinProcessed = null;
@@ -120,9 +119,12 @@
         imgCoinProcessed = processedImg;
     });
 
-    // Game Constants
-    const groundHeight = 60;
-    const groundY = canvas.height - groundHeight;
+    // Game Constants (Base values for 900x500)
+    const BASE_WIDTH = 900;
+    const BASE_HEIGHT = 500;
+    const baseGroundHeight = 60;
+    let groundHeight = baseGroundHeight;
+    let groundY = BASE_HEIGHT - groundHeight;
 
     // Game State
     let gameRunning = false;
@@ -136,7 +138,7 @@
     // Player
     const player = {
         x: 80,
-        y: groundY - 120,
+        y: 0,
         width: 120,
         height: 120,
         dy: 0,
@@ -153,6 +155,51 @@
     let particles = [];
     let floatingTexts = [];
 
+    function resize() {
+        // Get container dimensions
+        const container = document.getElementById('game-container');
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+
+        // Calculate scale factor relative to base design
+        scale = Math.min(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
+
+        // Update ground
+        groundHeight = baseGroundHeight * scale;
+        groundY = canvas.height - groundHeight;
+
+        // Update player size and position
+        player.width = 120 * scale;
+        // Recalculate height based on image ratio if loaded
+        if (imgPlayerProcessed) {
+             const ratio = imgPlayerProcessed.height / imgPlayerProcessed.width;
+             player.height = player.width * ratio;
+        } else {
+             player.height = 120 * scale;
+        }
+
+        playerVisualOffset = basePlayerVisualOffset * scale;
+        player.hitboxX = 30 * scale;
+        player.hitboxY = 20 * scale;
+
+        // Keep player on ground if grounded
+        if (!gameRunning || player.grounded) {
+            player.y = groundY - player.height + playerVisualOffset;
+        }
+
+        // Update physics constants
+        player.jumpPower = -20 * scale;
+        player.gravity = 1.0 * scale;
+        gameSpeed = 6 * scale;
+    }
+
+    window.addEventListener('resize', resize);
+    // Initial resize
+    resize();
+    // Resize again after a short delay to ensure container is ready
+    setTimeout(resize, 100);
+
+
     function startGame() {
         document.getElementById('start-screen').classList.add('hidden');
         resetGameVars();
@@ -161,6 +208,7 @@
     }
 
     function resetGameVars() {
+        resize(); // Ensure correct sizing
         player.y = groundY - player.height + playerVisualOffset;
         player.dy = 0;
         obstacles = [];
@@ -170,7 +218,6 @@
         score = 0;
         mitzvotCount = 0;
         frame = 0;
-        gameSpeed = 6;
         bgX = 0;
         groundX = 0;
         updateHUD();
@@ -191,7 +238,7 @@
         }
     }
 
-    // Input
+    // Input Handling
     document.addEventListener('keydown', (e) => {
         if (e.code === 'Space' || e.code === 'ArrowUp') {
             if (gameRunning) jump();
@@ -201,9 +248,11 @@
     });
 
     canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Prevent scrolling
         if (gameRunning) jump();
-    });
+        else if (!document.getElementById('start-screen').classList.contains('hidden')) startGame();
+        else if (!document.getElementById('game-over-screen').classList.contains('hidden')) resetGame();
+    }, { passive: false });
 
     canvas.addEventListener('mousedown', (e) => {
         if (gameRunning) jump();
@@ -211,12 +260,15 @@
 
     function spawnObstacle() {
         if (frame % 100 === 0) {
-            const height = 60 + Math.random() * 50;
+            const baseH = 60 + Math.random() * 50;
+            const h = baseH * scale;
+            const w = 50 * scale;
+
             obstacles.push({
                 x: canvas.width,
-                y: groundY - height,
-                width: 50,
-                height: height,
+                y: groundY - h,
+                width: w,
+                height: h,
                 color: '#8B4513'
             });
         }
@@ -224,8 +276,8 @@
 
     function spawnBonus() {
         if (frame % 150 === 0) {
-            let w = 90; // Increased from 70
-            let h = 90;
+            let w = 90 * scale;
+            let h = 90 * scale;
             if (imgCoinProcessed && imgCoinProcessed.width > 0) {
                 h = w * (imgCoinProcessed.height / imgCoinProcessed.width);
             }
@@ -234,14 +286,14 @@
             if (pattern > 0.5) {
                 bonuses.push({
                     x: canvas.width,
-                    y: groundY - 200 - Math.random() * 100, // Higher spawn for bigger coins
+                    y: groundY - (180 * scale) - Math.random() * (100 * scale),
                     width: w,
                     height: h
                 });
             } else {
                 bonuses.push({
                     x: canvas.width,
-                    y: groundY - 120, // Higher spawn
+                    y: groundY - (100 * scale),
                     width: w,
                     height: h
                 });
@@ -254,8 +306,8 @@
             particles.push({
                 x: x,
                 y: y,
-                vx: (Math.random() - 0.5) * 5,
-                vy: (Math.random() - 0.5) * 5,
+                vx: (Math.random() - 0.5) * (5 * scale),
+                vy: (Math.random() - 0.5) * (5 * scale),
                 life: 30,
                 color: color
             });
@@ -268,7 +320,7 @@
             y: y,
             text: text,
             life: 40,
-            dy: -2
+            dy: -2 * scale
         });
     }
 
@@ -348,7 +400,7 @@
         spawnObstacle();
         spawnBonus();
 
-        if (frame % 600 === 0) gameSpeed += 0.5;
+        if (frame % 600 === 0) gameSpeed += 0.5 * scale;
         frame++;
         updateHUD();
     }
@@ -367,11 +419,11 @@
         ctx.fillStyle = '#5D4037';
         ctx.fillRect(0, groundY, canvas.width, groundHeight);
         ctx.fillStyle = '#4CAF50';
-        ctx.fillRect(0, groundY, canvas.width, 10);
+        ctx.fillRect(0, groundY, canvas.width, 10 * scale);
         ctx.fillStyle = '#3E2723';
-        for(let i=0; i<canvas.width; i+=100) {
-            ctx.fillRect((groundX + i) % canvas.width, groundY + 20, 40, 10);
-            ctx.fillRect((groundX + i + canvas.width) % (canvas.width*2), groundY + 20, 40, 10);
+        for(let i=0; i<canvas.width; i+=100 * scale) {
+            ctx.fillRect((groundX + i) % canvas.width, groundY + 20 * scale, 40 * scale, 10 * scale);
+            ctx.fillRect((groundX + i + canvas.width) % (canvas.width*2), groundY + 20 * scale, 40 * scale, 10 * scale);
         }
 
         if (imgPlayerProcessed) {
@@ -385,7 +437,7 @@
             ctx.fillStyle = obs.color;
             ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
             ctx.strokeStyle = '#3E2723';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 3 * scale;
             ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
         });
 
@@ -395,7 +447,7 @@
             } else {
                 ctx.fillStyle = 'gold';
                 ctx.beginPath();
-                ctx.arc(bonus.x + 15, bonus.y + 15, 15, 0, Math.PI*2);
+                ctx.arc(bonus.x + 15 * scale, bonus.y + 15 * scale, 15 * scale, 0, Math.PI*2);
                 ctx.fill();
             }
         });
@@ -404,12 +456,12 @@
             ctx.fillStyle = p.color;
             ctx.globalAlpha = p.life / 30;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+            ctx.arc(p.x, p.y, 3 * scale, 0, Math.PI*2);
             ctx.fill();
             ctx.globalAlpha = 1;
         });
 
-        ctx.font = 'bold 20px Arial';
+        ctx.font = `bold ${20 * scale}px Arial`;
         ctx.fillStyle = '#FFD700';
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 1;

@@ -78,10 +78,10 @@
 <div id="celebration-modal" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
     <div class="bg-white rounded-[30px] p-8 text-center shadow-2xl transform scale-90 transition-transform duration-300 border-4 border-gold max-w-sm mx-4 relative z-10">
-        <div class="text-6xl mb-4 animate-bounce">🎉</div>
-        <h3 class="text-2xl font-bold text-royal-blue mb-2">Hazak !</h3>
-        <p class="text-gray-600 mb-4">Tu as bien étudié la Paracha !</p>
-        <div class="inline-block bg-gold/20 text-gold font-bold px-6 py-2 rounded-full text-xl">
+        <div class="text-6xl mb-4 animate-bounce" id="modal-icon">🎉</div>
+        <h3 class="text-2xl font-bold text-royal-blue mb-2" id="modal-title">Hazak !</h3>
+        <p class="text-gray-600 mb-4" id="modal-message">Tu as bien étudié la Paracha !</p>
+        <div class="inline-block bg-gold/20 text-gold font-bold px-6 py-2 rounded-full text-xl" id="modal-points-badge">
             +<span id="modal-points">50</span> pts
         </div>
     </div>
@@ -91,11 +91,14 @@
     document.addEventListener('DOMContentLoaded', function() {
         const completeBtn = document.getElementById('complete-reading-btn');
         const modal = document.getElementById('celebration-modal');
-        const modalContent = modal.querySelector('div.bg-white');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
         const modalPoints = document.getElementById('modal-points');
+        const modalPointsBadge = document.getElementById('modal-points-badge');
+        const modalIcon = document.getElementById('modal-icon');
 
         completeBtn.addEventListener('click', function() {
-            // Disable button to prevent double click
+            // Disable button
             completeBtn.disabled = true;
             completeBtn.classList.add('opacity-50', 'cursor-not-allowed');
             completeBtn.classList.remove('animate-bounce');
@@ -110,34 +113,42 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update button state
+                    // Success
                     completeBtn.innerHTML = '<span>✨</span> Bravo !';
-
-                    // Show Pop-up
-                    showCelebration(data.pointsEarned);
+                    showCelebration(data.pointsEarned, true);
+                } else if (data.alreadyCompleted) {
+                    // Already done
+                    completeBtn.innerHTML = '<span>✅</span> Déjà fait';
+                    showCelebration(0, false, data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 completeBtn.disabled = false;
                 completeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                completeBtn.innerHTML = '<span>❌</span> Erreur, réessaie';
+                completeBtn.innerHTML = '<span>❌</span> Erreur';
             });
         });
 
-        function showCelebration(points) {
-            modalPoints.textContent = points;
-            modal.classList.remove('pointer-events-none', 'opacity-0');
-            modalContent.classList.remove('scale-90');
-            modalContent.classList.add('scale-100');
+        function showCelebration(points, isSuccess, message = null) {
+            if (isSuccess) {
+                modalTitle.textContent = "Hazak !";
+                modalMessage.textContent = "Tu as bien étudié la Paracha !";
+                modalPoints.textContent = points;
+                modalPointsBadge.style.display = 'inline-block';
+                modalIcon.textContent = "🎉";
+                createConfetti();
+            } else {
+                modalTitle.textContent = "Déjà validé !";
+                modalMessage.textContent = message || "Tu as déjà gagné tes points cette semaine.";
+                modalPointsBadge.style.display = 'none';
+                modalIcon.textContent = "📅";
+            }
 
-            // Confetti effect
-            createConfetti();
+            modal.classList.remove('pointer-events-none', 'opacity-0');
 
             setTimeout(() => {
                 modal.classList.add('opacity-0', 'pointer-events-none');
-                modalContent.classList.remove('scale-100');
-                modalContent.classList.add('scale-90');
             }, 3000);
         }
 
