@@ -4,7 +4,6 @@
 
 {% block body %}
 <div class="flex items-center justify-center min-h-[80vh] py-4 sm:py-8 bg-gradient-to-b from-cyan-100 to-blue-200 px-2 sm:px-4">
-    {# Container: Aspect ratio 16/9 on desktop, but more flexible on mobile to fit screen #}
     <div id="game-container" class="relative w-full max-w-4xl aspect-[16/9] max-h-[80vh] bg-white rounded-[20px] sm:rounded-[30px] shadow-2xl overflow-hidden border-4 sm:border-8 border-royal-blue">
 
         {# HUD #}
@@ -13,45 +12,47 @@
                 Score: <span id="score">0</span>
             </div>
             <div class="bg-white/90 backdrop-blur px-3 py-1 sm:px-6 sm:py-3 rounded-full font-bold text-gold shadow-lg border-2 border-gold/10 text-xs sm:text-xl flex items-center gap-1 sm:gap-2">
-                <img src="{{ asset('images/tsedaka-run/pieces-run.png') }}" alt="Mitzvot" class="w-4 h-4 sm:w-8 sm:h-8 object-contain">
+                <div class="w-6 h-6 sm:w-12 sm:h-12 overflow-hidden flex items-center justify-center rounded-full">
+                    <img src="{{ asset('images/tsedaka-run/pieces-run.png') }}" alt="Mitzvot" class="w-full h-full object-cover transform scale-150">
+                </div>
                 <span id="mitzvot">0</span>
             </div>
         </div>
 
         {# Canvas #}
         <canvas id="gameCanvas" class="w-full h-full block touch-none"></canvas>
+    </div>
+</div>
 
-        {# Start Screen #}
-        <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-30 backdrop-blur-sm p-4 text-center">
-            <h1 class="text-3xl sm:text-6xl font-bold text-white mb-4 sm:mb-6 neon-gold drop-shadow-lg">Géoula Run 🏃‍♂️</h1>
-            <p class="text-white text-sm sm:text-2xl mb-6 sm:mb-10 font-medium">Appuie sur l'écran ou ESPACE pour sauter !</p>
-            <button onclick="startGame()" class="puffy-button-primary px-6 py-3 sm:px-10 sm:py-5 text-lg sm:text-2xl rounded-[15px] sm:rounded-[25px] font-bold animate-bounce shadow-xl hover:scale-105 transition-transform">
-                COMMENCER
-            </button>
+{# Start Screen (Fixed Overlay) #}
+<div id="start-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-black/80 z-[100] backdrop-blur-sm p-4 text-center">
+    <h1 class="text-4xl sm:text-6xl font-bold text-white mb-4 sm:mb-6 neon-gold drop-shadow-lg">Géoula Run 🏃‍♂️</h1>
+    <p class="text-white text-lg sm:text-2xl mb-6 sm:mb-10 font-medium">Appuie sur l'écran ou ESPACE pour sauter !</p>
+    <button onclick="startGame()" class="puffy-button-primary px-8 py-4 sm:px-10 sm:py-5 text-xl sm:text-2xl rounded-[20px] sm:rounded-[25px] font-bold animate-bounce shadow-xl hover:scale-105 transition-transform">
+        COMMENCER
+    </button>
+</div>
+
+{# Game Over Screen (Fixed Overlay) #}
+<div id="game-over-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-black/90 z-[100] hidden backdrop-blur-md p-4">
+    <h2 class="text-4xl sm:text-5xl font-bold text-white mb-2 sm:mb-4">Oups ! 🤕</h2>
+    <p class="text-white/80 mb-6 sm:mb-8 text-lg sm:text-xl">Tu as trébuché...</p>
+
+    <div class="bg-white rounded-[20px] sm:rounded-[30px] p-6 sm:p-8 mb-6 sm:mb-8 text-center w-72 sm:w-80 shadow-2xl transform scale-100 sm:scale-110">
+        <p class="text-gray-500 text-xs sm:text-sm uppercase tracking-wider font-bold mb-1 sm:mb-2">Score Final</p>
+        <p class="text-5xl sm:text-6xl font-black text-royal-blue gradient-text" id="final-score">0</p>
+        <div class="mt-3 sm:mt-4 inline-block bg-gold/20 text-gold px-4 py-1 rounded-full font-bold text-sm sm:text-lg border border-gold/30">
+            +<span id="points-earned">0</span> pts gagnés
         </div>
+    </div>
 
-        {# Game Over Screen #}
-        <div id="game-over-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 z-30 hidden backdrop-blur-md p-4">
-            <h2 class="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4">Oups ! 🤕</h2>
-            <p class="text-white/80 mb-4 sm:mb-8 text-base sm:text-xl">Tu as trébuché...</p>
-
-            <div class="bg-white rounded-[20px] sm:rounded-[30px] p-4 sm:p-8 mb-4 sm:mb-8 text-center w-64 sm:w-80 shadow-2xl transform scale-100 sm:scale-110">
-                <p class="text-gray-500 text-xs sm:text-sm uppercase tracking-wider font-bold mb-1 sm:mb-2">Score Final</p>
-                <p class="text-4xl sm:text-6xl font-black text-royal-blue gradient-text" id="final-score">0</p>
-                <div class="mt-2 sm:mt-4 inline-block bg-gold/20 text-gold px-3 py-1 sm:px-4 sm:py-1 rounded-full font-bold text-sm sm:text-lg border border-gold/30">
-                    +<span id="points-earned">0</span> pts gagnés
-                </div>
-            </div>
-
-            <div class="flex gap-3 sm:gap-6">
-                <button onclick="resetGame()" class="puffy-button-gold px-4 py-2 sm:px-8 sm:py-4 rounded-[15px] sm:rounded-[20px] font-bold text-sm sm:text-lg shadow-lg hover:scale-105 transition-transform">
-                    REJOUER 🔄
-                </button>
-                <a href="{{ path('app_gaming_zone') }}" class="puffy-button px-4 py-2 sm:px-8 sm:py-4 rounded-[15px] sm:rounded-[20px] font-bold text-sm sm:text-lg shadow-lg hover:scale-105 transition-transform">
-                    QUITTER
-                </a>
-            </div>
-        </div>
+    <div class="flex gap-4 sm:gap-6">
+        <button onclick="resetGame()" class="puffy-button-gold px-6 py-3 sm:px-8 sm:py-4 rounded-[15px] sm:rounded-[20px] font-bold text-base sm:text-lg shadow-lg hover:scale-105 transition-transform">
+            REJOUER 🔄
+        </button>
+        <a href="{{ path('app_gaming_zone') }}" class="puffy-button px-6 py-3 sm:px-8 sm:py-4 rounded-[15px] sm:rounded-[20px] font-bold text-base sm:text-lg shadow-lg hover:scale-105 transition-transform">
+            QUITTER
+        </a>
     </div>
 </div>
 
@@ -100,7 +101,6 @@
     const imgPlayerRaw = new Image();
     imgPlayerRaw.src = "{{ asset('images/tsedaka-run/perso-run.png') }}";
 
-    // Increased offset to fix floating
     const basePlayerVisualOffset = 25;
     let playerVisualOffset = basePlayerVisualOffset;
 
@@ -160,12 +160,10 @@
         canvas.height = container.clientHeight;
 
         // Calculate scale factor relative to base design
-        // Use the smaller scale to fit everything
         scale = Math.min(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
 
-        // If on mobile (portrait), adjust scale to be bigger relative to screen width
         if (canvas.width < 600) {
-             scale = canvas.width / BASE_WIDTH * 1.5; // Zoom in a bit on mobile
+             scale = canvas.width / BASE_WIDTH * 1.5;
         }
 
         // Update ground
@@ -174,7 +172,6 @@
 
         // Update player size and position
         player.width = 120 * scale;
-        // Recalculate height based on image ratio if loaded
         if (imgPlayerProcessed) {
              const ratio = imgPlayerProcessed.height / imgPlayerProcessed.width;
              player.height = player.width * ratio;
@@ -186,12 +183,10 @@
         player.hitboxX = 30 * scale;
         player.hitboxY = 20 * scale;
 
-        // Keep player on ground if grounded
         if (!gameRunning || player.grounded) {
             player.y = groundY - player.height + playerVisualOffset;
         }
 
-        // Update physics constants
         player.jumpPower = -20 * scale;
         player.gravity = 1.0 * scale;
         gameSpeed = 6 * scale;
@@ -200,7 +195,6 @@
     window.addEventListener('resize', resize);
     // Initial resize
     resize();
-    // Resize again after a short delay to ensure container is ready
     setTimeout(resize, 100);
 
 
@@ -290,14 +284,14 @@
             if (pattern > 0.5) {
                 bonuses.push({
                     x: canvas.width,
-                    y: groundY - (180 * scale) - Math.random() * (100 * scale),
+                    y: groundY - (180 * scale) - Math.random() * (100 * scale), // Higher spawn for bigger coins
                     width: w,
                     height: h
                 });
             } else {
                 bonuses.push({
                     x: canvas.width,
-                    y: groundY - (100 * scale),
+                    y: groundY - (100 * scale), // Higher spawn
                     width: w,
                     height: h
                 });
