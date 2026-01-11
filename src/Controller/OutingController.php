@@ -16,10 +16,10 @@ class OutingController extends AbstractController
         $upcomingOutings = [
             [
                 'id' => 1,
-                'title' => 'Grand Parc d\'Attraction',
-                'date' => 'Dimanche 12 Mai • 10h00',
-                'icon' => '🎡',
-                'description' => 'Une journée inoubliable pleine de sensations fortes !'
+                'title' => 'Sortie Patinoire',
+                'date' => 'Dimanche 25 Janvier 2026',
+                'icon' => '⛸️',
+                'description' => 'Viens glisser et t\'amuser avec nous sur la glace !'
             ]
         ];
 
