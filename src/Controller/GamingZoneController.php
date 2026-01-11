@@ -28,12 +28,17 @@ class GamingZoneController extends AbstractController
 
         $leaderboard = [];
         foreach ($topUsers as $index => $user) {
+            // Check if avatar is valid (not null, not empty, not just "avatar" string)
+            $avatar = $user->getAvatar();
+            $hasValidAvatar = $avatar && $avatar !== 'avatar' && filter_var($avatar, FILTER_VALIDATE_URL);
+
             $leaderboard[] = [
                 'rank' => $index + 1,
                 'name' => $user->getPseudo(),
                 'score' => $user->getTotalPoints(),
                 'badges' => $user->getBadges()->count(),
-                'avatar' => $user->getAvatar() ? $user->getAvatar() : strtoupper(substr($user->getPseudo(), 0, 1))
+                'avatar' => $hasValidAvatar ? $avatar : null,
+                'initial' => strtoupper(substr($user->getPseudo(), 0, 1))
             ];
         }
 

@@ -126,10 +126,10 @@
 
                         {# Avatar #}
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-royal-blue to-gold flex items-center justify-center text-white font-bold flex-shrink-0 shadow-sm overflow-hidden">
-                            {% if entry.avatar|length > 2 %}
+                            {% if entry.avatar %}
                                 <img src="{{ entry.avatar }}" alt="Avatar" class="w-full h-full object-cover">
                             {% else %}
-                                {{ entry.avatar }}
+                                {{ entry.initial }}
                             {% endif %}
                         </div>
 
@@ -160,7 +160,7 @@
         <div class="mt-6 p-4 rounded-[20px] bg-gradient-to-r from-vibrant-orange to-gold text-white text-center shadow-lg">
             <p class="font-bold mb-2 text-lg">
                 {% if userRank > 0 %}
-                    Tu es {{ userRank }}ème! Continue comme ça! 🔥
+                    Tu es {{ userRank }}{{ userRank == 1 ? 'er' : 'ème' }}! Continue comme ça! 🔥
                 {% else %}
                     Joue pour entrer dans le classement !
                 {% endif %}
