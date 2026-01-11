@@ -17,20 +17,17 @@
                 <span class="font-bold text-royal-blue">Progression Annuelle</span>
                 <span class="text-gold font-bold">{{ annualProgress|round }}%</span>
             </div>
-            <div class="flex gap-1 h-3 w-full rounded-full overflow-hidden bg-gray-200">
+            <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                <div class="bg-gradient-to-r from-vibrant-orange to-gold h-full transition-all duration-1000 ease-out" style="width: {{ annualProgress }}%"></div>
+            </div>
+
+            <div class="flex gap-1 h-2 w-full mt-2 rounded-full overflow-hidden opacity-50">
                 {% for book, count in torahBooks %}
                     {% set isCurrent = book == currentBook %}
-                    {% set isPast = false %}
-
-                    <div class="flex-1 relative group cursor-help">
-                        <div class="h-full w-full {{ isCurrent ? 'bg-vibrant-orange animate-pulse' : 'bg-royal-blue/20' }}"></div>
-                        {# Tooltip (Hidden on mobile) #}
-                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden sm:group-hover:block bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                            {{ book }}
-                        </div>
-                    </div>
+                    <div class="flex-1 relative group cursor-help {{ isCurrent ? 'bg-royal-blue' : 'bg-gray-300' }}" title="{{ book }}"></div>
                 {% endfor %}
             </div>
+
             <p class="text-xs text-gray-500 mt-2">
                 Nous sommes dans le livre de <span class="font-bold text-royal-blue">{{ currentBook }}</span>, Paracha <span class="font-bold text-vibrant-orange">{{ currentParachaName }}</span>
             </p>
@@ -39,7 +36,7 @@
 
     {# Reader Interface #}
     <section class="glass-card rounded-[30px] overflow-hidden shadow-2xl border-4 border-white/50">
-        {# Toolbar - Simplified #}
+        {# Toolbar #}
         <div class="flex flex-wrap items-center justify-between gap-3 p-4 bg-white/80 border-b border-gray-200 backdrop-blur-sm">
             <div class="flex items-center gap-2">
                 <span class="text-base sm:text-lg font-bold text-royal-blue truncate max-w-[200px] sm:max-w-none">{{ currentDocument.title }}</span>
@@ -67,7 +64,7 @@
             {# Floating Action Button #}
             <div class="absolute bottom-4 right-4 sm:bottom-8 sm:right-8 z-10">
                 <button id="complete-reading-btn" class="puffy-button-gold px-4 py-2 sm:px-6 sm:py-3 rounded-[20px] font-bold shadow-lg hover:scale-105 transition flex items-center gap-2 animate-bounce border-2 border-white cursor-pointer text-sm sm:text-base">
-                    <span>✅</span> J'ai terminé !
+                    <span>✅</span> J'ai terminé la lecture !
                 </button>
             </div>
         </div>

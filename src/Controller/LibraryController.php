@@ -19,19 +19,20 @@ class LibraryController extends AbstractController
     public function index(DocumentRepository $documentRepository, HebraicCalendarService $calendarService): Response
     {
         // Structure of the Torah for progress calculation
+        // Adjusted spellings to match Hebcal common output
         $torahBooks = [
-            'Bereshit' => ['Bereshit', 'Noach', 'Lech Lecha', 'Vayera', 'Chayei Sarah', 'Toldot', 'Vayetze', 'Vayishlach', 'Vayeshev', 'Miketz', 'Vayigash', 'Vayechi'],
-            'Shemot' => ['Shemot', 'Va\'eira', 'Bo', 'Beshalach', 'Yitro', 'Mishpatim', 'Terumah', 'Tetzaveh', 'Ki Tisa', 'Vayakhel', 'Pekudei'],
+            'Bereshit' => ['Bereshit', 'Noach', 'Lech-Lecha', 'Vayera', 'Chayei Sara', 'Toldot', 'Vayetzei', 'Vayishlach', 'Vayeshev', 'Miketz', 'Vayigash', 'Vayechi'],
+            'Shemot' => ['Shemot', 'Vaera', 'Bo', 'Beshalach', 'Yitro', 'Mishpatim', 'Terumah', 'Tetzaveh', 'Ki Tisa', 'Vayakhel', 'Pekudei'],
             'Vayikra' => ['Vayikra', 'Tzav', 'Shemini', 'Tazria', 'Metzora', 'Acharei Mot', 'Kedoshim', 'Emor', 'Behar', 'Bechukotai'],
-            'Bamidbar' => ['Bamidbar', 'Naso', 'Behaalotecha', 'Shlach', 'Korach', 'Chukat', 'Balak', 'Pinchas', 'Matot', 'Masei'],
-            'Devarim' => ['Devarim', 'Vaetchanan', 'Eikev', 'Re\'eh', 'Shoftim', 'Ki Teitzei', 'Ki Tavo', 'Nitzavim', 'Vayelech', 'Haazinu', 'V\'Zot HaBerachah'],
+            'Bamidbar' => ['Bamidbar', 'Nasso', 'Beha\'alotcha', 'Sh\'lach', 'Korach', 'Chukat', 'Balak', 'Pinchas', 'Matot', 'Masei'],
+            'Devarim' => ['Devarim', 'Vaetchanan', 'Eikev', 'Re\'eh', 'Shoftim', 'Ki Teitzei', 'Ki Tavo', 'Nitzavim', 'Vayelech', 'Ha\'Azinu', 'V\'Zot HaBerachah'],
         ];
 
         // Get current Paracha from Hebcal via Service
         $parachaInfo = $calendarService->getCurrentParacha();
-        $currentParachaName = $parachaInfo['name']; // Ex: "Chemot" from RSS
+        $currentParachaName = $parachaInfo['name']; // Ex: "Vaera"
 
-        // Normalize for comparison (remove accents, lowercase)
+        // Normalize for comparison (remove accents, lowercase, apostrophes, hyphens)
         $normalizedCurrent = $this->normalizeString($currentParachaName);
 
         // Determine current book and progress
@@ -44,8 +45,6 @@ class LibraryController extends AbstractController
             $totalParachiotCount += count($parachiot);
 
             if ($foundCurrent) {
-                // If we already found the current paracha in a previous book,
-                // subsequent books contribute 0 to completed count.
                 continue;
             }
 
@@ -57,7 +56,7 @@ class LibraryController extends AbstractController
                     $position = $index;
                     break;
                 }
-                // Handle special cases like "Chemot" vs "Shemot"
+                // Handle special cases manually if normalization fails
                 if ($normalizedCurrent === 'chemot' && $this->normalizeString($p) === 'shemot') {
                     $position = $index;
                     break;
@@ -75,9 +74,8 @@ class LibraryController extends AbstractController
             }
         }
 
-        // Fallback if not found (e.g. spelling mismatch), default to beginning
+        // Fallback if not found
         if (!$foundCurrent) {
-            // Reset to 0 or handle error. Let's assume Bereshit 1 if not found.
             $completedParachiotCount = 0;
             $currentBook = 'Bereshit';
         }
@@ -86,9 +84,14 @@ class LibraryController extends AbstractController
         $annualProgress = ($totalParachiotCount > 0) ? ($completedParachiotCount / $totalParachiotCount) * 100 : 0;
 
         // Use Local PDF File
+        $filename = 'Géoula-Kids.pdf';
+        $encodedFilename = rawurlencode($filename);
+        $pdfPath = '/images/feuillet/' . $encodedFilename;
+
         $currentDocument = [
             'title' => 'Paracha ' . $currentParachaName,
-            'pdfUrl' => '/images/feuillet/Géoula Kids.pdf', // Local path
+            'pdfUrl' => $pdfPath,
+            'downloadUrl' => $pdfPath,
             'pageCount' => 4
         ];
 
@@ -107,9 +110,13 @@ class LibraryController extends AbstractController
     private function normalizeString(string $str): string
     {
         $str = strtolower($str);
-        $str = str_replace(['é', 'è', 'ê'], 'e', $str);
+        $str = str_replace(['é', 'è', 'ê', 'ë'], 'e', $str);
         $str = str_replace(['à', 'â'], 'a', $str);
-        // Add more replacements if needed
+        $str = str_replace(['ï', 'î'], 'i', $str);
+        $str = str_replace(['ô'], 'o', $str);
+        $str = str_replace(['ù', 'û'], 'u', $str);
+        // Remove apostrophes, hyphens and non-alphanumeric characters
+        $str = preg_replace('/[^a-z0-9]/', '', $str);
         return $str;
     }
 
