@@ -28,11 +28,14 @@ class DashboardController extends AbstractController
 
         $badgesData = [];
         foreach ($allBadges as $badge) {
+            $imagePath = $this->getBadgeImage($badge->getName());
+
             $badgesData[] = [
                 'name' => $badge->getName(),
-                'description' => 'Description du badge', // Add description to Badge entity if needed
+                'description' => 'Badge spécial',
                 'unlocked' => $userBadges->contains($badge),
-                'icon' => 'trophy' // Add icon to Badge entity if needed
+                'icon' => 'trophy', // Fallback icon
+                'image' => $imagePath // Custom image path if exists
             ];
         }
 
@@ -41,7 +44,7 @@ class DashboardController extends AbstractController
 
         $stats = [
             ['label' => 'Points Totaux', 'value' => number_format($user->getTotalPoints()), 'color' => 'text-vibrant-orange'],
-            ['label' => 'Niveau', 'value' => $user->getCurrentRank(), 'color' => 'text-gold'], // Display Rank Name instead of Level Number
+            ['label' => 'Niveau', 'value' => $user->getCurrentRank(), 'color' => 'text-gold'],
             ['label' => 'Série de Jours', 'value' => $user->getLoginStreak() . ' 🔥', 'color' => 'text-royal-blue']
         ];
 
@@ -68,5 +71,23 @@ class DashboardController extends AbstractController
             'weeklyTarget' => $weeklyTarget,
             'rankInfo' => $rankInfo
         ]);
+    }
+
+    private function getBadgeImage(string $badgeName): ?string
+    {
+        // Normalize badge name to filename format (e.g. "10 Chevat" -> "10-chevat.png")
+        $filename = strtolower(str_replace(' ', '-', $badgeName)) . '.png';
+
+        // Check if file exists in public/images/badge/
+        $publicDir = $this->getParameter('kernel.project_dir') . '/public/images/badge/';
+
+        if (file_exists($publicDir . $filename)) {
+            return '/images/badge/' . $filename;
+        }
+
+        // Try mapping special cases if needed
+        // e.g. "Ami Fidèle" -> no image, return null
+
+        return null;
     }
 }

@@ -2,125 +2,147 @@
 
 namespace App\Controller;
 
+use App\Entity\Badge;
 use App\Repository\BadgeRepository;
+use App\Service\GamificationManager;
+use App\Service\HebraicCalendarService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_USER')]
 class CalendarController extends AbstractController
 {
     #[Route('/calendar', name: 'app_calendar')]
-    public function index(BadgeRepository $badgeRepository): Response
+    public function index(HebraicCalendarService $calendarService, BadgeRepository $badgeRepository): Response
     {
+        $today = new \DateTime();
+        $hebraicDate = $calendarService->getHebraicDate($today);
         $user = $this->getUser();
-        $userBadges = $user->getBadges();
 
-        // Mock events data (could be moved to DB later)
-        // We map the 'collectorBadge' name to real badges in DB if they exist
-        $events = [
+        // Mock events - In real app, fetch from DB or Service
+        $upcomingEvents = [
             [
-                'id' => '1',
-                'hebrewDate' => 'Yud Aleph Nissan',
-                'gregorianDate' => '11 Avril 2026',
-                'title' => 'Anniversaire du Rabbi',
-                'description' => 'Célébrons l\'anniversaire du Rebbe avec des histoires, chants et activités spéciales',
-                'category' => 'chassidic',
-                'badgeName' => 'Étoile Nissan',
-                'badgeIcon' => '⭐'
+                'date' => '10 Chevat',
+                'hebraic_day' => 10,
+                'hebraic_month' => 'Chevat',
+                'title' => 'Youd Chevat',
+                'description' => 'Jour de Hiloula du Rabbi précédent',
+                'badge' => '10 Chevat',
+                'type' => 'chassidique',
+                'auto_award' => false
             ],
             [
-                'id' => '2',
-                'hebrewDate' => 'Youd Teth Kislev',
-                'gregorianDate' => '19 Décembre 2025',
-                'title' => 'Roch Hachana de la Hassidout',
-                'description' => 'Jour de libération et de célébration de la lumière chassidique',
-                'category' => 'chassidic',
-                'badgeName' => 'Flamme de Kislev',
-                'badgeIcon' => '🕯️'
+                'date' => '15 Chevat',
+                'hebraic_day' => 15,
+                'hebraic_month' => 'Chevat',
+                'title' => 'Tou Bichevat',
+                'description' => 'Nouvel an des arbres',
+                'badge' => 'Tou Bichevat',
+                'type' => 'fete',
+                'auto_award' => false
             ],
             [
-                'id' => '3',
-                'hebrewDate' => 'Roch Hachana',
-                'gregorianDate' => '23-24 Septembre 2025',
-                'title' => 'Nouvel An Juif',
-                'description' => 'Début de la nouvelle année avec prières et réflexions',
-                'category' => 'yom-tov',
-                'badgeName' => 'Couronne Royale',
-                'badgeIcon' => '👑'
+                'date' => '22 Chevat',
+                'hebraic_day' => 22,
+                'hebraic_month' => 'Chevat',
+                'title' => 'haf Bet Chevat',
+                'description' => 'Yahrzeit de la Rabbanit Haya Mouchka',
+                'badge' => '22 Chevat',
+                'type' => 'chassidique',
+                'auto_award' => false
             ],
             [
-                'id' => '4',
-                'hebrewDate' => 'Yom Kippour',
-                'gregorianDate' => '2 Octobre 2025',
-                'title' => 'Jour du Grand Pardon',
-                'description' => 'Jour sacré de jeûne et de prière',
-                'category' => 'yom-tov',
-                'badgeName' => 'Lumière Pure',
-                'badgeIcon' => '✨'
-            ],
-            [
-                'id' => '5',
-                'hebrewDate' => 'Hanouka',
-                'gregorianDate' => '25 Décembre 2025 - 1 Janvier 2026',
-                'title' => 'Fête des Lumières',
-                'description' => 'Huit jours de miracle et de lumière',
-                'category' => 'yom-tov',
-                'badgeName' => 'Menorah d\'Or',
-                'badgeIcon' => '🕎'
-            ],
-            [
-                'id' => '6',
-                'hebrewDate' => 'Pourim',
-                'gregorianDate' => '14 Mars 2026',
-                'title' => 'Fête de la Joie',
-                'description' => 'Célébration du miracle de Pourim avec joie et partage',
-                'category' => 'yom-tov',
-                'badgeName' => 'Masque Joyeux',
-                'badgeIcon' => '🎭'
+                'date' => '14 Adar ',
+                'hebraic_day' => 14,
+                'hebraic_month' => 'Adar ',
+                'title' => 'Pourim ',
+                'description' => 'fete de Pourim ',
+                'badge' => 'Pourim', // Reusing Pourim badge
+                'type' => 'fete',
+                'auto_award' => true // Example of auto award
             ]
         ];
 
-        // Process events to check badge status against DB
-        $processedEvents = [];
-        $totalCollectorBadges = 0;
-        $unlockedCollectorBadges = 0;
+        // Enrich events
+        foreach ($upcomingEvents as &$event) {
+            $event['badge_image'] = $this->getBadgeImage($event['badge']);
 
-        foreach ($events as $event) {
-            $isUnlocked = false;
-
-            // Check if user has this badge
-            foreach ($userBadges as $userBadge) {
-                if ($userBadge->getName() === $event['badgeName']) {
-                    $isUnlocked = true;
-                    break;
+            // Check if user already has the badge
+            $event['has_badge'] = false;
+            if ($user) {
+                foreach ($user->getBadges() as $userBadge) {
+                    if ($userBadge->getName() === $event['badge']) {
+                        $event['has_badge'] = true;
+                        break;
+                    }
                 }
             }
 
-            if ($event['badgeName']) {
-                $totalCollectorBadges++;
-                if ($isUnlocked) {
-                    $unlockedCollectorBadges++;
-                }
-            }
+            // Check if today is the day to claim
+            // Note: This comparison depends on exact string matching with API response
+            // For MVP, we assume it matches or we force it for demo if needed
+            $isToday = ($hebraicDate['day'] == $event['hebraic_day'] &&
+                        (str_contains($hebraicDate['month'], $event['hebraic_month']) || $hebraicDate['month'] == $event['hebraic_month']));
 
-            $event['collectorBadge'] = [
-                'name' => $event['badgeName'],
-                'icon' => $event['badgeIcon'],
-                'unlocked' => $isUnlocked
-            ];
-
-            $processedEvents[] = $event;
+            $event['can_claim'] = $isToday && !$event['has_badge'] && !$event['auto_award'];
         }
 
-        // Get next 4 events
-        $upcomingEvents = array_slice($processedEvents, 0, 4);
-
         return $this->render('calendar/index.html.twig', [
+            'hebraicDate' => $hebraicDate,
             'upcomingEvents' => $upcomingEvents,
-            'unlockedBadgesCount' => $unlockedCollectorBadges,
-            'totalEvents' => $totalCollectorBadges // Total badges available in calendar
         ]);
+    }
+
+    #[Route('/calendar/claim/{badgeName}', name: 'app_calendar_claim')]
+    #[IsGranted('ROLE_USER')]
+    public function claim(
+        string $badgeName,
+        BadgeRepository $badgeRepository,
+        GamificationManager $gamificationManager,
+        EntityManagerInterface $em
+    ): Response
+    {
+        $user = $this->getUser();
+        $badge = $badgeRepository->findOneBy(['name' => $badgeName]);
+
+        if (!$badge) {
+            // Create badge on the fly if it doesn't exist (for MVP simplicity)
+            $badge = new Badge();
+            $badge->setName($badgeName);
+            $badge->setDescription("Badge obtenu le " . date('d/m/Y'));
+            $badge->setIcon('calendar');
+            // Try to find image
+            $imagePath = $this->getBadgeImage($badgeName);
+            if ($imagePath) {
+                $badge->setImage($imagePath);
+            }
+            $em->persist($badge);
+            $em->flush();
+        }
+
+        if ($user->getBadges()->contains($badge)) {
+            $this->addFlash('warning', 'Tu as déjà ce badge !');
+        } else {
+            $user->addBadge($badge);
+            // Add bonus points for claiming
+            $gamificationManager->addPoints($user, 50);
+            $em->flush();
+            $this->addFlash('success', "Bravo ! Tu as récupéré le badge $badgeName et 50 points !");
+        }
+
+        return $this->redirectToRoute('app_calendar');
+    }
+
+    private function getBadgeImage(string $badgeName): ?string
+    {
+        $filename = strtolower(str_replace(' ', '-', $badgeName)) . '.png';
+        $publicDir = $this->getParameter('kernel.project_dir') . '/public/images/badge/';
+
+        if (file_exists($publicDir . $filename)) {
+            return '/images/badge/' . $filename;
+        }
+        return null;
     }
 }

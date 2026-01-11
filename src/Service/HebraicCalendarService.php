@@ -15,6 +15,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class HebraicCalendarService
 {
     private const HEBCAL_RSS_URL = 'https://www.hebcal.com/sedrot/index-fr.xml';
+    private const HEBCAL_CONVERTER_URL = 'https://www.hebcal.com/converter';
 
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -25,17 +26,10 @@ class HebraicCalendarService
         private LoggerInterface $logger
     ) {}
 
-    /**
-     * Récupère la Paracha de la semaine.
-     * Cache désactivé temporairement pour debug si nécessaire, ou durée très courte.
-     */
     public function getCurrentParacha(): array
     {
-        // Pour debug : on force l'expiration immédiate ou on n'utilise pas le cache
-        // return $this->fetchParachaDirectly();
-
         return $this->cache->get('current_paracha_v2', function (ItemInterface $item) {
-            $item->expiresAfter(300); // Cache court de 5 min pour tester
+            $item->expiresAfter(300);
 
             try {
                 return $this->fetchParachaDirectly();
@@ -44,7 +38,7 @@ class HebraicCalendarService
 
                 return [
                     'name' => 'Bereshit',
-                    'full_title' => 'Erreur: ' . $e->getMessage(), // Affiche l'erreur dans le titre pour debug
+                    'full_title' => 'Erreur: ' . $e->getMessage(),
                     'date' => date('r'),
                     'description' => 'Impossible de charger le calendrier.'
                 ];
@@ -56,11 +50,10 @@ class HebraicCalendarService
     {
         $content = null;
 
-        // Tentative 1 : HttpClient Symfony
         try {
             $response = $this->httpClient->request('GET', self::HEBCAL_RSS_URL, [
                 'timeout' => 5,
-                'verify_peer' => false, // Désactive la vérif SSL temporairement (cas fréquents sur serveurs mutualisés)
+                'verify_peer' => false,
             ]);
             if ($response->getStatusCode() === 200) {
                 $content = $response->getContent();
@@ -69,7 +62,6 @@ class HebraicCalendarService
             $this->logger->warning('HttpClient a échoué: ' . $e->getMessage());
         }
 
-        // Tentative 2 : file_get_contents (si allow_url_fopen est on)
         if (!$content && ini_get('allow_url_fopen')) {
             $content = @file_get_contents(self::HEBCAL_RSS_URL);
         }
@@ -98,29 +90,82 @@ class HebraicCalendarService
         ];
     }
 
-    // ... (rest of the methods unchanged)
+    /**
+     * Convertit une date grégorienne en date hébraïque via l'API Hebcal.
+     */
     public function getHebraicDate(\DateTimeInterface $date): array
     {
-        if (!function_exists('gregoriantojd')) {
+        // Cache for 24h since date doesn't change often
+        return $this->cache->get('hebraic_date_' . $date->format('Y-m-d'), function (ItemInterface $item) use ($date) {
+            $item->expiresAfter(3600 * 24);
+
+            try {
+                $response = $this->httpClient->request('GET', self::HEBCAL_CONVERTER_URL, [
+                    'query' => [
+                        'cfg' => 'json',
+                        'gy' => $date->format('Y'),
+                        'gm' => $date->format('m'),
+                        'gd' => $date->format('d'),
+                        'g2h' => 1
+                    ],
+                    'timeout' => 5,
+                    'verify_peer' => false
+                ]);
+
+                if ($response->getStatusCode() === 200) {
+                    $data = $response->toArray();
+
+                    // Translate month manually or use Hebcal's transliteration if available
+                    // Hebcal returns "Nisan", we want "Nissan" or French
+                    $month = $data['hm'];
+                    $day = $data['hd'];
+                    $year = $data['hy'];
+                    $hebrew = $data['hebrew'];
+
+                    return [
+                        'day' => $day,
+                        'month' => $month,
+                        'year' => $year,
+                        'original_string' => $hebrew,
+                        'full_string' => "$day $month $year"
+                    ];
+                }
+            } catch (\Exception $e) {
+                $this->logger->error('Erreur conversion date Hebcal: ' . $e->getMessage());
+            }
+
+            // Fallback to PHP native if API fails
+            if (function_exists('gregoriantojd')) {
+                $jd = gregoriantojd((int)$date->format('m'), (int)$date->format('d'), (int)$date->format('Y'));
+                $hebrewDate = jdtojewish($jd, true, CAL_JEWISH_ADD_GERESHAYIM);
+                // Parse string like "2/11/5784" or similar depending on locale
+                // This is rough, API is better
+                return [
+                    'day' => 1,
+                    'month' => 'Nissan (Fallback)',
+                    'year' => 5784,
+                    'original_string' => $hebrewDate
+                ];
+            }
+
             return ['day' => 1, 'month' => 'Nissan', 'year' => 5784];
-        }
-        $jd = gregoriantojd((int)$date->format('m'), (int)$date->format('d'), (int)$date->format('Y'));
-        $hebrewDate = jdtojewish($jd, true, CAL_JEWISH_ADD_GERESHAYIM);
-        return ['original_string' => iconv('WINDOWS-1255', 'UTF-8', $hebrewDate), 'day' => 11, 'month' => 'Nissan', 'year' => 5784];
+        });
     }
 
     public function isSpecialDate(\DateTimeInterface $date, string $specialDay, string $specialMonth): bool
     {
-        if ($date->format('m-d') === '04-19' && $specialDay == 11 && $specialMonth == 'Nissan') {
-            return true;
-        }
-        return false;
+        // This logic needs to use the hebraic date, not gregorian
+        $hebraic = $this->getHebraicDate($date);
+        return $hebraic['day'] == $specialDay && $hebraic['month'] == $specialMonth;
     }
 
     public function checkAndAwardDailyBadges(): void
     {
         $today = new \DateTime();
-        if ($this->isSpecialDate($today, 11, 'Nissan')) {
+        // Example: Check for 11 Nissan
+        $hebraic = $this->getHebraicDate($today);
+
+        if ($hebraic['day'] == 11 && $hebraic['month'] == 'Nisan') { // Hebcal uses 'Nisan'
             $this->awardBadgeToAllActiveUsers('Collector Youd Aleph Nissan');
         }
     }

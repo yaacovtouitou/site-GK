@@ -3,7 +3,7 @@
 {% block title %}Mon Coin Géoula{% endblock %}
 
 {% block body %}
-<div class="space-y-6 sm:space-y-8">
+<div class="space-y-6 sm:space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     {# User Profile Section #}
     <div class="grid lg:grid-cols-2 gap-6 sm:gap-8">
         {# Left: User Info #}
@@ -12,7 +12,11 @@
                 {# Avatar #}
                 <div class="relative flex-shrink-0">
                     <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-royal-blue to-gold flex items-center justify-center text-4xl sm:text-5xl font-bold text-white shadow-xl overflow-hidden">
-                        {{ user.pseudo|first|upper }}
+                        {% if user.avatar and user.avatar != 'avatar' %}
+                            <img src="{{ user.avatar }}" alt="Avatar" class="w-full h-full object-cover">
+                        {% else %}
+                            {{ user.pseudo|first|upper }}
+                        {% endif %}
                     </div>
                     <div class="absolute -bottom-2 -right-2 puffy-button-gold rounded-full p-2">
                         <span class="text-xl">⭐</span>
@@ -111,7 +115,7 @@
 
     {# Badge Gallery #}
     <section>
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-2">
             <h2 class="text-xl sm:text-2xl font-bold text-royal-blue flex items-center gap-2">
                 <span class="text-vibrant-orange">🏆</span>
                 Ma Galerie de Badges
@@ -121,13 +125,17 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-6">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
             {% for badge in badges %}
                 <div class="flex flex-col items-center gap-3 p-3 sm:p-4 neo-card rounded-[20px] transition-all duration-300 hover:scale-105">
-                    <div class="relative w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center {{ badge.unlocked ? 'holographic-badge shadow-xl' : 'locked-badge neo-inset' }}">
-                        <span class="text-2xl sm:text-4xl">
-                            {% if badge.icon == 'trophy' %}🏆{% elseif badge.icon == 'star' %}⭐{% elseif badge.icon == 'zap' %}⚡{% elseif badge.icon == 'award' %}🏅{% elseif badge.icon == 'crown' %}👑{% elseif badge.icon == 'heart' %}❤️{% elseif badge.icon == 'book' %}📖{% elseif badge.icon == 'target' %}🎯{% endif %}
-                        </span>
+                    <div class="relative w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center {{ badge.unlocked ? 'holographic-badge shadow-xl' : 'locked-badge neo-inset' }} overflow-hidden">
+                        {% if badge.image %}
+                            <img src="{{ asset(badge.image) }}" alt="{{ badge.name }}" class="w-full h-full object-cover {{ badge.unlocked ? '' : 'opacity-50 grayscale' }}">
+                        {% else %}
+                            <span class="text-2xl sm:text-4xl">
+                                {% if badge.icon == 'trophy' %}🏆{% elseif badge.icon == 'star' %}⭐{% elseif badge.icon == 'zap' %}⚡{% elseif badge.icon == 'award' %}🏅{% elseif badge.icon == 'crown' %}👑{% elseif badge.icon == 'heart' %}❤️{% elseif badge.icon == 'book' %}📖{% elseif badge.icon == 'target' %}🎯{% endif %}
+                            </span>
+                        {% endif %}
                     </div>
                     <div class="text-center w-full">
                         <h4 class="font-bold text-xs sm:text-sm md:text-base {{ badge.unlocked ? 'text-royal-blue' : 'text-gray-400' }} truncate w-full">
@@ -150,12 +158,12 @@
     </section>
 
     {# Motivational Section #}
-    <div class="glass-card rounded-[30px] p-6 sm:p-8 text-center mx-2 sm:mx-0">
+    <div class="glass-card rounded-[30px] p-6 sm:p-8 text-center">
         <h3 class="text-lg sm:text-xl font-bold gradient-text mb-3">
             Continue comme ça, Champion! 🎉
         </h3>
         <p class="text-xs sm:text-sm md:text-base text-gray-700 max-w-2xl mx-auto">
-            Tu es à seulement 3 badges de devenir un Chassid Futuriste! Complète tes missions quotidiennes pour continuer à progresser.
+            Tu es à seulement 3 badges de devenir un Hassid Futuriste! Complète tes missions quotidiennes pour continuer à progresser.
         </p>
     </div>
 </div>

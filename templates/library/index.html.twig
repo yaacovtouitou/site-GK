@@ -3,7 +3,7 @@
 {% block title %}Paracha Connect - Géoula Kids{% endblock %}
 
 {% block body %}
-<div class="space-y-6 max-w-5xl mx-auto">
+<div class="space-y-6 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
     {# Header & Progress #}
     <div class="text-center space-y-4">
         <h1 class="text-3xl sm:text-4xl font-bold gradient-text flex items-center justify-center gap-3">
@@ -20,12 +20,12 @@
             <div class="flex gap-1 h-3 w-full rounded-full overflow-hidden bg-gray-200">
                 {% for book, count in torahBooks %}
                     {% set isCurrent = book == currentBook %}
-                    {% set isPast = false %} {# Logic to determine if book is past would go here #}
+                    {% set isPast = false %}
 
                     <div class="flex-1 relative group cursor-help">
                         <div class="h-full w-full {{ isCurrent ? 'bg-vibrant-orange animate-pulse' : 'bg-royal-blue/20' }}"></div>
-                        {# Tooltip #}
-                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                        {# Tooltip (Hidden on mobile) #}
+                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden sm:group-hover:block bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
                             {{ book }}
                         </div>
                     </div>
@@ -42,32 +42,32 @@
         {# Toolbar - Simplified #}
         <div class="flex flex-wrap items-center justify-between gap-3 p-4 bg-white/80 border-b border-gray-200 backdrop-blur-sm">
             <div class="flex items-center gap-2">
-                <span class="text-lg font-bold text-royal-blue">{{ currentDocument.title }}</span>
+                <span class="text-base sm:text-lg font-bold text-royal-blue truncate max-w-[200px] sm:max-w-none">{{ currentDocument.title }}</span>
             </div>
 
             <div class="flex items-center gap-2">
-                <a href="{{ currentDocument.pdfUrl }}" download class="puffy-button p-2 rounded-[10px] hover:scale-110 transition" title="Télécharger le PDF">
+                <a href="{{ currentDocument.downloadUrl }}" target="_blank" class="puffy-button p-2 rounded-[10px] hover:scale-110 transition text-xs sm:text-sm" title="Télécharger le PDF">
                     ⬇️ Télécharger
                 </a>
             </div>
         </div>
 
         {# PDF Viewer Area #}
-        <div class="bg-gray-50 relative min-h-[800px] flex flex-col items-center justify-center p-0">
+        <div class="bg-gray-50 relative min-h-[500px] sm:min-h-[800px] flex flex-col items-center justify-center p-0">
             {# Native PDF Viewer #}
-            <object data="{{ currentDocument.pdfUrl }}" type="application/pdf" width="100%" height="800px" class="rounded-b-[25px]">
+            <object data="{{ currentDocument.pdfUrl }}" type="application/pdf" width="100%" height="800px" class="rounded-b-[25px] w-full h-[500px] sm:h-[800px]">
                 <div class="flex flex-col items-center justify-center h-full p-8 text-center">
                     <p class="text-gray-600 mb-4">Il semble que ton navigateur ne puisse pas afficher le PDF directement.</p>
-                    <a href="{{ currentDocument.pdfUrl }}" class="puffy-button-primary px-6 py-3 rounded-[20px]">
+                    <a href="{{ currentDocument.downloadUrl }}" target="_blank" class="puffy-button-primary px-6 py-3 rounded-[20px]">
                         Télécharger le fichier pour le lire
                     </a>
                 </div>
             </object>
 
             {# Floating Action Button #}
-            <div class="absolute bottom-8 right-8 z-10">
-                <button id="complete-reading-btn" class="puffy-button-gold px-6 py-3 rounded-[20px] font-bold shadow-lg hover:scale-105 transition flex items-center gap-2 animate-bounce border-2 border-white cursor-pointer">
-                    <span>✅</span> J'ai terminé la lecture !
+            <div class="absolute bottom-4 right-4 sm:bottom-8 sm:right-8 z-10">
+                <button id="complete-reading-btn" class="puffy-button-gold px-4 py-2 sm:px-6 sm:py-3 rounded-[20px] font-bold shadow-lg hover:scale-105 transition flex items-center gap-2 animate-bounce border-2 border-white cursor-pointer text-sm sm:text-base">
+                    <span>✅</span> J'ai terminé !
                 </button>
             </div>
         </div>
@@ -75,13 +75,13 @@
 </div>
 
 {# Celebration Pop-up #}
-<div id="celebration-modal" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
+<div id="celebration-modal" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300 px-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-    <div class="bg-white rounded-[30px] p-8 text-center shadow-2xl transform scale-90 transition-transform duration-300 border-4 border-gold max-w-sm mx-4 relative z-10">
-        <div class="text-6xl mb-4 animate-bounce" id="modal-icon">🎉</div>
-        <h3 class="text-2xl font-bold text-royal-blue mb-2" id="modal-title">Hazak !</h3>
-        <p class="text-gray-600 mb-4" id="modal-message">Tu as bien étudié la Paracha !</p>
-        <div class="inline-block bg-gold/20 text-gold font-bold px-6 py-2 rounded-full text-xl" id="modal-points-badge">
+    <div class="bg-white rounded-[30px] p-6 sm:p-8 text-center shadow-2xl transform scale-90 transition-transform duration-300 border-4 border-gold w-full max-w-sm relative z-10">
+        <div class="text-5xl sm:text-6xl mb-4 animate-bounce" id="modal-icon">🎉</div>
+        <h3 class="text-xl sm:text-2xl font-bold text-royal-blue mb-2" id="modal-title">Hazak !</h3>
+        <p class="text-sm sm:text-base text-gray-600 mb-4" id="modal-message">Tu as bien étudié la Paracha !</p>
+        <div class="inline-block bg-gold/20 text-gold font-bold px-4 py-2 sm:px-6 sm:py-2 rounded-full text-lg sm:text-xl" id="modal-points-badge">
             +<span id="modal-points">50</span> pts
         </div>
     </div>
@@ -98,7 +98,6 @@
         const modalIcon = document.getElementById('modal-icon');
 
         completeBtn.addEventListener('click', function() {
-            // Disable button
             completeBtn.disabled = true;
             completeBtn.classList.add('opacity-50', 'cursor-not-allowed');
             completeBtn.classList.remove('animate-bounce');
@@ -128,11 +127,9 @@
             })
             .then(data => {
                 if (data.success) {
-                    // Success
                     completeBtn.innerHTML = '<span>✨</span> Bravo !';
                     showCelebration(data.pointsEarned, true);
                 } else if (data.alreadyCompleted) {
-                    // Already done
                     completeBtn.innerHTML = '<span>✅</span> Déjà fait';
                     showCelebration(0, false, data.message);
                 }
