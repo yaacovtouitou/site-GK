@@ -12,9 +12,7 @@
                 Score: <span id="score">0</span>
             </div>
             <div class="bg-white/90 backdrop-blur px-3 py-1 sm:px-6 sm:py-3 rounded-full font-bold text-gold shadow-lg border-2 border-gold/10 text-xs sm:text-xl flex items-center gap-1 sm:gap-2">
-                <div class="w-6 h-6 sm:w-12 sm:h-12 overflow-hidden flex items-center justify-center rounded-full">
-                    <img src="{{ asset('images/tsedaka-run/pieces-run.png') }}" alt="Mitzvot" class="w-full h-full object-cover transform scale-150">
-                </div>
+                <img src="{{ asset('images/tsedaka-run/pieces-run.png') }}" alt="Mitzvot" class="w-6 h-6 sm:w-12 sm:h-12 object-contain">
                 <span id="mitzvot">0</span>
             </div>
         </div>
@@ -216,6 +214,7 @@
         score = 0;
         mitzvotCount = 0;
         frame = 0;
+        gameSpeed = 6 * scale; // Reset speed with scale
         bgX = 0;
         groundX = 0;
         updateHUD();
@@ -245,12 +244,24 @@
         }
     });
 
+    // Touch handling: Prevent default to stop scrolling/zooming
+    // And ensure we don't trigger multiple jumps if held
+    let isTouching = false;
+
     canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault(); // Prevent scrolling
+        e.preventDefault();
+        if (isTouching) return;
+        isTouching = true;
+
         if (gameRunning) jump();
         else if (!document.getElementById('start-screen').classList.contains('hidden')) startGame();
         else if (!document.getElementById('game-over-screen').classList.contains('hidden')) resetGame();
     }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        isTouching = false;
+    });
 
     canvas.addEventListener('mousedown', (e) => {
         if (gameRunning) jump();
@@ -274,8 +285,8 @@
 
     function spawnBonus() {
         if (frame % 150 === 0) {
-            let w = 90 * scale;
-            let h = 90 * scale;
+            let w = 130 * scale;
+            let h = 130 * scale;
             if (imgCoinProcessed && imgCoinProcessed.width > 0) {
                 h = w * (imgCoinProcessed.height / imgCoinProcessed.width);
             }
@@ -284,14 +295,14 @@
             if (pattern > 0.5) {
                 bonuses.push({
                     x: canvas.width,
-                    y: groundY - (180 * scale) - Math.random() * (100 * scale), // Higher spawn for bigger coins
+                    y: groundY - (250 * scale) - Math.random() * (100 * scale),
                     width: w,
                     height: h
                 });
             } else {
                 bonuses.push({
                     x: canvas.width,
-                    y: groundY - (100 * scale), // Higher spawn
+                    y: groundY - (150 * scale),
                     width: w,
                     height: h
                 });
@@ -398,7 +409,9 @@
         spawnObstacle();
         spawnBonus();
 
-        if (frame % 600 === 0) gameSpeed += 0.5 * scale;
+        // REMOVED: Difficulty Increase (Speed stays constant)
+        // if (frame % 600 === 0) gameSpeed += 0.5 * scale;
+
         frame++;
         updateHUD();
     }
