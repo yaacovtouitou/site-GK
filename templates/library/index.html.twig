@@ -110,7 +110,12 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message || 'Erreur serveur'); });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     // Success
@@ -126,7 +131,9 @@
                 console.error('Error:', error);
                 completeBtn.disabled = false;
                 completeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                completeBtn.innerHTML = '<span>❌</span> Erreur';
+                // Display error message in button for debugging
+                completeBtn.innerHTML = '<span>❌</span> ' + error.message.substring(0, 20);
+                alert(error.message); // Show full error in alert
             });
         });
 
