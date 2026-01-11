@@ -17,7 +17,7 @@ class HomeController extends AbstractController
             [
                 'id' => '1',
                 'title' => 'Nouvelle aventure Torah disponible!',
-                'description' => 'Explore les histoires passionnantes de Paracha Bereshit avec des quiz interactifs',
+                'description' => 'Explore les histoires passionnantes de la Paracha avec des quiz interactifs',
                 'image' => 'https://images.unsplash.com/photo-1640544634610-fac94ff37c21?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqZXdpc2glMjBjaGlsZHJlbiUyMGxlYXJuaW5nJTIwaGFwcHl8ZW58MXx8fHwxNzY3NjY2NDAxfDA&ixlib=rb-4.1.0&q=80&w=1080',
                 'category' => 'Nouveau'
             ],

@@ -1,0 +1,369 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Torah Quest - Casher ou Pas ?{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-center min-h-[80vh] py-8 bg-gradient-to-b from-blue-50 to-blue-100">
+    <div id="game-wrapper" class="relative">
+
+        {# Header #}
+        <div id="game-header" class="relative">
+            <div class="stat-item score-box">
+                <span class="icon">⭐</span> <b id="score">0</b>
+            </div>
+
+            {# Feedback Visuel (Pouces) Centré #}
+            <div id="feedback-container" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl opacity-0 transition-opacity duration-300 z-20 pointer-events-none">
+                👍
+            </div>
+
+            <div class="stat-item lives-box">
+                <div id="lives-container">❤️❤️❤️</div>
+            </div>
+        </div>
+
+        {# Zone de Jeu (Tapis Roulant) #}
+        <div id="conveyor-track">
+            <div class="conveyor-belt"></div>
+            <div class="conveyor-gears">
+                <div class="gear">⚙️</div>
+                <div class="gear">⚙️</div>
+                <div class="gear">⚙️</div>
+            </div>
+
+            <div id="food-container">
+                <div id="current-item-box">🍎</div>
+            </div>
+        </div>
+
+        {# Contrôles #}
+        <div id="controls">
+            <button onclick="checkChoice(true)" class="btn btn-kosher group">
+                <div class="btn-content">
+                    <span class="icon group-hover:scale-125 transition-transform">✅</span>
+                    <span>CASHÈR</span>
+                </div>
+                <div class="btn-shine"></div>
+            </button>
+            <button onclick="checkChoice(false)" class="btn btn-non-kosher group">
+                <div class="btn-content">
+                    <span class="icon group-hover:scale-125 transition-transform">❌</span>
+                    <span>PAS CASHÈR</span>
+                </div>
+                <div class="btn-shine"></div>
+            </button>
+        </div>
+
+        {# Écrans Overlay #}
+        <div id="game-over-screen" class="overlay hidden">
+            <div class="modal glass-card-dark">
+                <div class="text-6xl mb-4">🏆</div>
+                <h2 class="text-3xl font-bold text-white mb-2 neon-gold">Partie Terminée !</h2>
+                <div class="final-score-box">
+                    <p class="text-white/80 text-sm">Ton score final</p>
+                    <span id="final-score" class="text-5xl font-bold text-gold">0</span>
+                </div>
+                <div class="flex flex-col gap-3 w-full">
+                    <button onclick="startGame()" class="btn-restart">REJOUER 🔄</button>
+                    <a href="{{ path('app_gaming_zone') }}" class="text-white/60 hover:text-white text-sm mt-2 transition-colors">Retour au menu</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+
+    :root {
+        --primary: #FFB347;
+        --secondary: #8B4513;
+        --success: #4CAF50;
+        --danger: #FF5252;
+        --bg-game: #FFF8E1;
+        --belt-color: #5D4037;
+    }
+
+    #game-wrapper {
+        width: 100%; max-width: 450px; height: 650px;
+        background: var(--bg-game);
+        border: 8px solid var(--primary);
+        border-radius: 40px;
+        position: relative; overflow: hidden;
+        font-family: 'Fredoka', sans-serif;
+        box-shadow:
+            0 20px 0 #F57C00,
+            0 30px 20px rgba(0,0,0,0.2);
+        display: flex; flex-direction: column;
+        padding: 20px;
+        user-select: none;
+    }
+
+    /* Header */
+    #game-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 20px;
+        position: relative; /* Pour le positionnement absolu du feedback */
+    }
+
+    .stat-item {
+        background: white; padding: 10px 20px; border-radius: 20px;
+        box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        display: flex; align-items: center; gap: 10px;
+        font-size: 20px; font-weight: 700; color: var(--secondary);
+        z-index: 10; /* Au-dessus du feedback si besoin */
+    }
+
+    /* Tapis Roulant */
+    #conveyor-track {
+        flex: 1;
+        background: #BCAAA4;
+        border-radius: 20px;
+        border: 4px solid var(--secondary);
+        position: relative;
+        overflow: hidden;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: inset 0 10px 20px rgba(0,0,0,0.2);
+        margin-bottom: 20px;
+    }
+
+    .conveyor-belt {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 40px;
+        background: repeating-linear-gradient(
+            90deg,
+            #3E2723,
+            #3E2723 20px,
+            #4E342E 20px,
+            #4E342E 40px
+        );
+        animation: scrollBelt 1s linear infinite;
+    }
+
+    .conveyor-gears {
+        position: absolute; bottom: -15px; width: 100%;
+        display: flex; justify-content: space-around;
+        z-index: 10;
+    }
+    .gear { font-size: 30px; animation: spin 2s linear infinite; }
+
+    @keyframes scrollBelt { from { background-position: 0 0; } to { background-position: 40px 0; } }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* Item */
+    #food-container {
+        z-index: 5;
+        filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
+    }
+
+    #current-item-box {
+        font-size: 120px;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Contrôles */
+    #controls { display: flex; gap: 15px; height: 110px; }
+
+    .btn {
+        flex: 1; border: none; border-radius: 25px;
+        cursor: pointer; position: relative; overflow: hidden;
+        transition: all 0.1s;
+        font-family: 'Fredoka', sans-serif;
+    }
+
+    .btn-kosher { background: var(--success); box-shadow: 0 8px 0 #2E7D32; }
+    .btn-non-kosher { background: var(--danger); box-shadow: 0 8px 0 #C62828; }
+
+    .btn:active { transform: translateY(5px); box-shadow: 0 3px 0 rgba(0,0,0,0.2) !important; }
+
+    .btn-content {
+        position: relative; z-index: 2;
+        color: white; display: flex; flex-direction: column; align-items: center; gap: 5px;
+    }
+    .btn-content span:last-child { font-weight: 700; font-size: 20px; letter-spacing: 1px; }
+    .btn-content .icon { font-size: 30px; }
+
+    .btn-shine {
+        position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+        background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+        transform: skewX(-20deg);
+        animation: shine 3s infinite;
+    }
+
+    @keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+
+    /* Overlay */
+    .overlay {
+        position: absolute; inset: 0; background: rgba(0,0,0,0.85);
+        backdrop-filter: blur(5px);
+        display: flex; align-items: center; justify-content: center; z-index: 100;
+        border-radius: 30px;
+    }
+
+    .modal {
+        padding: 40px; border-radius: 30px; text-align: center;
+        width: 90%;
+        border: 2px solid rgba(255,215,0,0.3);
+    }
+
+    .btn-restart {
+        background: linear-gradient(135deg, #FFB347, #FFCC80);
+        border: none; padding: 15px; width: 100%;
+        border-radius: 15px; font-family: 'Fredoka'; font-size: 20px; font-weight: bold;
+        color: #8B4513; cursor: pointer;
+        box-shadow: 0 5px 0 #F57C00;
+        transition: transform 0.1s;
+    }
+    .btn-restart:active { transform: translateY(3px); box-shadow: 0 2px 0 #F57C00; }
+
+    /* Animations */
+    .hidden { display: none !important; }
+
+    .pop-in { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes popIn { 0% { transform: scale(0) rotate(-180deg); } 100% { transform: scale(1) rotate(0deg); } }
+
+    .shake { animation: shake 0.4s; }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+    /* Feedback Pouce */
+    .feedback-thumb {
+        animation: thumbPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes thumbPop { 0% { transform: translate(-50%, -50%) scale(0); } 50% { transform: translate(-50%, -50%) scale(1.5); } 100% { transform: translate(-50%, -50%) scale(1); } }
+</style>
+
+<script>
+    const foods = [
+        // Fruits & Légumes (Toujours Casher)
+        { emoji: "🍎", kosher: true }, { emoji: "🍌", kosher: true }, { emoji: "🍇", kosher: true },
+        { emoji: "🍉", kosher: true }, { emoji: "🍓", kosher: true }, { emoji: "🍒", kosher: true },
+        { emoji: "🍍", kosher: true }, { emoji: "🥑", kosher: true }, { emoji: "🥔", kosher: true },
+        { emoji: "🥕", kosher: true }, { emoji: "🌽", kosher: true }, { emoji: "🥦", kosher: true },
+        { emoji: "🥒", kosher: true }, { emoji: "🍅", kosher: true }, { emoji: "🍋", kosher: true },
+        { emoji: "🍊", kosher: true }, { emoji: "🍐", kosher: true }, { emoji: "🍑", kosher: true },
+
+        // Viandes & Poissons Casher
+        { emoji: "🐟", kosher: true }, { emoji: "🥩", kosher: true }, { emoji: "🍗", kosher: true },
+        { emoji: "🥚", kosher: true },
+
+        // Produits Laitiers & Autres (Casher)
+        { emoji: "🥛", kosher: true }, { emoji: "🧀", kosher: true }, { emoji: "🧈", kosher: true },
+        { emoji: "🍞", kosher: true }, { emoji: "🥐", kosher: true }, { emoji: "🥖", kosher: true },
+        { emoji: "🥨", kosher: true }, { emoji: "🥯", kosher: true }, { emoji: "🥞", kosher: true },
+        { emoji: "🧇", kosher: true }, { emoji: "🍝", kosher: true }, { emoji: "🍚", kosher: true },
+        { emoji: "🍦", kosher: true }, { emoji: "🧁", kosher: true }, { emoji: "🍰", kosher: true },
+        { emoji: "🎂", kosher: true }, { emoji: "🍭", kosher: true }, { emoji: "🍬", kosher: true },
+        { emoji: "🍫", kosher: true }, { emoji: "🍿", kosher: true }, { emoji: "🍩", kosher: true },
+        { emoji: "🍪", kosher: true }, { emoji: "🥤", kosher: true }, { emoji: "🧃", kosher: true },
+        { emoji: "☕", kosher: true },
+
+        // Non Casher (Animaux interdits, mélanges, fruits de mer)
+        { emoji: "🐷", kosher: false }, { emoji: "🐖", kosher: false }, { emoji: "🥓", kosher: false },
+        { emoji: "🐗", kosher: false }, { emoji: "🐇", kosher: false }, { emoji: "🐁", kosher: false },
+        { emoji: "🐻", kosher: false }, { emoji: "🐸", kosher: false }, { emoji: "🐢", kosher: false },
+        { emoji: "🐍", kosher: false }, { emoji: "🐙", kosher: false }, { emoji: "🦑", kosher: false },
+        { emoji: "🦐", kosher: false }, { emoji: "🦞", kosher: false }, { emoji: "🦀", kosher: false },
+        { emoji: "🐌", kosher: false }, { emoji: "🐛", kosher: false }, { emoji: "🐜", kosher: false },
+        { emoji: "🕷️", kosher: false }, { emoji: "🦂", kosher: false }, { emoji: "🦟", kosher: false },
+    ];
+
+    let score = 0;
+    let lives = 3;
+    let currentFood = null;
+    let isAnimating = false;
+
+    function updateHearts() {
+        const container = document.getElementById('lives-container');
+        container.innerHTML = '❤️'.repeat(lives) + '<span style="opacity:0.3">' + '🖤'.repeat(3-lives) + '</span>';
+    }
+
+    function startGame() {
+        score = 0;
+        lives = 3;
+        isAnimating = false;
+        document.getElementById('game-over-screen').classList.add('hidden');
+        document.getElementById('score').innerText = score;
+        document.getElementById('feedback-container').style.opacity = '0';
+        updateHearts();
+        nextItem();
+    }
+
+    function nextItem() {
+        if (lives <= 0) return gameOver();
+
+        currentFood = foods[Math.floor(Math.random() * foods.length)];
+        const box = document.getElementById('current-item-box');
+
+        // Reset classes
+        box.className = '';
+        box.innerText = currentFood.emoji;
+
+        // Trigger animation
+        void box.offsetWidth;
+        box.classList.add('pop-in');
+
+        isAnimating = false;
+    }
+
+    function showFeedback(isCorrect) {
+        const container = document.getElementById('feedback-container');
+        container.innerText = isCorrect ? '👍' : '👎';
+        container.style.color = isCorrect ? '#4CAF50' : '#F44336';
+        container.style.opacity = '1';
+        container.classList.remove('feedback-thumb');
+        void container.offsetWidth;
+        container.classList.add('feedback-thumb');
+
+        setTimeout(() => {
+            container.style.opacity = '0';
+        }, 1000);
+    }
+
+    function checkChoice(choice) {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        const isCorrect = (choice === currentFood.kosher);
+
+        if (isCorrect) {
+            score += 10;
+            document.getElementById('score').innerText = score;
+            showFeedback(true);
+        } else {
+            lives--;
+            updateHearts();
+            showFeedback(false);
+
+            // Animation d'erreur
+            document.getElementById('game-wrapper').classList.add('shake');
+            setTimeout(() => document.getElementById('game-wrapper').classList.remove('shake'), 400);
+        }
+
+        // Délai avant le prochain item
+        setTimeout(() => {
+            if (lives > 0) {
+                nextItem();
+            } else {
+                gameOver();
+            }
+        }, 800);
+    }
+
+    function gameOver() {
+        document.getElementById('game-over-screen').classList.remove('hidden');
+        document.getElementById('final-score').innerText = score;
+
+        if (score > 0) {
+            fetch('/gaming-zone/save-score/torah-quest', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ score: score })
+            });
+        }
+    }
+
+    startGame();
+</script>
+{% endblock %}

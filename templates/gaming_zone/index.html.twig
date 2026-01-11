@@ -3,7 +3,7 @@
 {% block title %}Gaming Zone - Géoula Kids{% endblock %}
 
 {% block body %}
-<div class="space-y-8 sm:space-y-12 max-w-5xl mx-auto">
+<div class="space-y-8 sm:space-y-12 max-w-7xl mx-auto">
     {# Header #}
     <div class="text-center space-y-2">
         <h1 class="text-3xl sm:text-4xl font-bold gradient-text flex items-center justify-center gap-3">
@@ -13,53 +13,119 @@
         <p class="text-sm sm:text-base text-gray-600">
             Joue, apprends et deviens un champion! 🎮
         </p>
+
+        {# Energy Display #}
+        <div class="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md mt-4 border border-gray-100">
+            <span class="text-xl">⚡</span>
+            <span class="font-bold text-royal-blue">Mon Énergie :</span>
+            <span class="font-bold {{ userEnergy < 20 ? 'text-red-500' : 'text-gold' }}">{{ userEnergy }}%</span>
+        </div>
     </div>
 
-    {# Featured Game (Torah Quest) #}
-    <section class="flex justify-center px-2 sm:px-0">
+    {# Games Grid #}
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2 sm:px-0">
         {% for game in games %}
-            <div class="glass-card-dark rounded-[30px] p-6 sm:p-8 transition-all duration-300 hover:scale-105 cursor-pointer group w-full max-w-md text-center shadow-2xl border-2 border-gold/30">
-                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-[25px] bg-gradient-to-br {{ game.color }} flex items-center justify-center mb-6 mx-auto group-hover:rotate-12 transition-transform duration-300 text-white text-4xl sm:text-5xl shadow-lg">
-                    {% if game.icon == 'gamepad' %}🎮{% elseif game.icon == 'target' %}🎯{% elseif game.icon == 'zap' %}⚡{% endif %}
+            <div class="glass-card-dark rounded-[30px] p-8 transition-all duration-300 hover:scale-105 cursor-pointer group text-center shadow-2xl border-2 border-gold/30 flex flex-col h-full relative overflow-hidden">
+
+                {# Badge Type #}
+                <div class="absolute top-4 right-4 z-10">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold {{ game.type == 'Hebdomadaire' ? 'bg-vibrant-orange text-white' : 'bg-royal-blue text-white' }}">
+                        {{ game.type }}
+                    </span>
                 </div>
-                <h3 class="text-xl sm:text-2xl font-bold text-white mb-3 neon-gold">
+
+                <div class="w-24 h-24 rounded-[25px] bg-gradient-to-br {{ game.color }} flex items-center justify-center mb-6 mx-auto group-hover:rotate-12 transition-transform duration-300 text-white text-5xl shadow-lg relative z-10">
+                    {% if game.icon == 'gamepad' %}🎮{% elseif game.icon == 'book' %}📖{% elseif game.icon == 'run' %}🏃{% endif %}
+                </div>
+
+                <h3 class="text-2xl font-bold text-white mb-3 neon-gold relative z-10">
                     {{ game.title }}
                 </h3>
-                <p class="text-sm sm:text-base text-white/90 mb-6">
-                    {{ game.description }}
-                </p>
-                <div class="flex flex-col items-center gap-4">
-                    <a href="{{ path('app_gaming_complete', {gameId: game.id}) }}" class="puffy-button w-full py-3 text-lg rounded-[20px] font-bold hover:bg-white hover:text-royal-blue transition-colors block">
-                        Jouer maintenant ! 🚀
-                    </a>
+
+                {% if game.id == 'torah-quest' %}
+                    {# Règles du jeu (spécifique Casher ou Pas) #}
+                    <div class="bg-white/10 rounded-xl p-4 mb-6 text-left relative z-10 flex-grow">
+                        <h4 class="text-gold font-bold text-sm mb-2 flex items-center gap-2">
+                            <span>📜</span> Règles :
+                        </h4>
+                        <ul class="text-white/90 text-xs space-y-1 list-disc list-inside">
+                            <li>Trie les aliments.</li>
+                            <li><span class="text-green-400">✅</span> Casher / <span class="text-red-400">❌</span> Pas Casher.</li>
+                            <li>3 vies ! ❤️</li>
+                        </ul>
+                    </div>
+                {% elseif game.id == 'geoula-run' %}
+                    {# Règles du jeu (spécifique Géoula Run) #}
+                    <div class="bg-white/10 rounded-xl p-4 mb-6 text-left relative z-10 flex-grow">
+                        <h4 class="text-gold font-bold text-sm mb-2 flex items-center gap-2">
+                            <span>📜</span> Règles :
+                        </h4>
+                        <ul class="text-white/90 text-xs space-y-1 list-disc list-inside">
+                            <li>Cours et saute (Espace).</li>
+                            <li>Évite les obstacles 🟫.</li>
+                            <li>Attrape les Mitzvot 🪙.</li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <p class="text-base text-white/90 mb-6 flex-grow relative z-10">
+                        {{ game.description }}
+                    </p>
+                {% endif %}
+
+                <div class="flex flex-col items-center gap-4 mt-auto relative z-10">
+                    <div class="flex items-center gap-4 text-sm font-bold">
+                        <span class="text-gold">Gain : +{{ game.points }} pts</span>
+                        <span class="text-red-300">Coût : -{{ game.energy_cost }} ⚡</span>
+                    </div>
+
+                    {% if userEnergy >= game.energy_cost %}
+                        {% if game.id == 'paracha-quiz' %}
+                             {# Placeholder link for quiz #}
+                             <button disabled class="bg-gray-500 text-white/50 w-full py-3 text-lg rounded-[20px] font-bold cursor-not-allowed">
+                                Bientôt disponible 🚧
+                            </button>
+                        {% elseif game.id == 'torah-quest' %}
+                            <a href="{{ path('app_gaming_play_torah_quest') }}" class="puffy-button w-full py-3 text-lg rounded-[20px] font-bold hover:bg-white hover:text-royal-blue transition-colors block">
+                                Jouer maintenant ! 🚀
+                            </a>
+                        {% elseif game.id == 'geoula-run' %}
+                            <a href="{{ path('app_gaming_play_geoula_run') }}" class="puffy-button w-full py-3 text-lg rounded-[20px] font-bold hover:bg-white hover:text-royal-blue transition-colors block">
+                                Jouer maintenant ! 🚀
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <button disabled class="bg-gray-500 text-white/50 w-full py-3 text-lg rounded-[20px] font-bold cursor-not-allowed">
+                            Pas assez d'énergie 😴
+                        </button>
+                    {% endif %}
                 </div>
             </div>
         {% endfor %}
     </section>
 
     {# Leaderboard #}
-    <section class="glass-card-dark rounded-[30px] p-4 sm:p-6 md:p-8">
+    <section class="glass-card-dark rounded-[30px] p-6 sm:p-8">
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg sm:text-2xl font-bold text-white flex items-center gap-2">
+            <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
                 <span class="text-gold">🏆</span>
                 <span class="neon-gold">Leaderboard</span>
             </h2>
-            <div class="text-xs sm:text-sm text-white/60">Cette semaine</div>
+            <div class="text-sm text-white/60">Cette semaine</div>
         </div>
 
         <div class="space-y-3">
             {% for entry in leaderboard %}
                 {% set rankColor = entry.rank == 1 ? 'from-yellow-400 to-yellow-600' : (entry.rank == 2 ? 'from-gray-300 to-gray-500' : (entry.rank == 3 ? 'from-orange-400 to-orange-600' : 'from-royal-blue to-royal-blue')) %}
 
-                <div class="neo-card rounded-[20px] p-3 sm:p-4 transition-all duration-300 hover:scale-[1.02] {{ entry.rank == userRank ? 'ring-2 ring-vibrant-orange ring-offset-2 ring-offset-royal-blue/10' : '' }}">
-                    <div class="flex items-center gap-2 sm:gap-4">
+                <div class="neo-card rounded-[20px] p-4 transition-all duration-300 hover:scale-[1.02] {{ entry.rank == userRank ? 'ring-2 ring-vibrant-orange ring-offset-2 ring-offset-royal-blue/10' : '' }}">
+                    <div class="flex items-center gap-4">
                         {# Rank #}
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br {{ rankColor }} flex items-center justify-center flex-shrink-0 text-white font-bold text-base sm:text-lg shadow-md">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br {{ rankColor }} flex items-center justify-center flex-shrink-0 text-white font-bold text-lg shadow-md">
                             {% if entry.rank == 1 %}👑{% elseif entry.rank == 2 %}🥈{% elseif entry.rank == 3 %}🥉{% else %}#{{ entry.rank }}{% endif %}
                         </div>
 
                         {# Avatar #}
-                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-royal-blue to-gold flex items-center justify-center text-white font-bold flex-shrink-0 shadow-sm overflow-hidden">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-royal-blue to-gold flex items-center justify-center text-white font-bold flex-shrink-0 shadow-sm overflow-hidden">
                             {% if entry.avatar|length > 2 %}
                                 <img src="{{ entry.avatar }}" alt="Avatar" class="w-full h-full object-cover">
                             {% else %}
@@ -69,8 +135,8 @@
 
                         {# Info #}
                         <div class="flex-1 min-w-0">
-                            <h4 class="font-bold text-sm sm:text-base text-royal-blue truncate">{{ entry.name }}</h4>
-                            <div class="flex items-center gap-2 text-[10px] sm:text-xs text-gray-600">
+                            <h4 class="font-bold text-royal-blue truncate">{{ entry.name }}</h4>
+                            <div class="flex items-center gap-3 text-xs text-gray-600">
                                 <span class="flex items-center gap-1">
                                     <span class="text-gold">🏆</span>
                                     {{ entry.badges }} badges
@@ -80,7 +146,7 @@
 
                         {# Score #}
                         <div class="text-right flex-shrink-0">
-                            <div class="text-base sm:text-xl font-bold gradient-text">
+                            <div class="text-lg sm:text-xl font-bold gradient-text">
                                 {{ entry.score|number_format }}
                             </div>
                             <div class="text-xs text-gray-500">points</div>
@@ -92,7 +158,7 @@
 
         {# Your Rank CTA #}
         <div class="mt-6 p-4 rounded-[20px] bg-gradient-to-r from-vibrant-orange to-gold text-white text-center shadow-lg">
-            <p class="font-bold mb-2 text-base sm:text-lg">
+            <p class="font-bold mb-2 text-lg">
                 {% if userRank > 0 %}
                     Tu es {{ userRank }}ème! Continue comme ça! 🔥
                 {% else %}
@@ -100,9 +166,9 @@
                 {% endif %}
             </p>
             {% if pointsToPodium > 0 %}
-                <p class="text-xs sm:text-sm opacity-90">Encore {{ pointsToPodium }} points pour atteindre le top 3!</p>
+                <p class="text-sm opacity-90">Encore {{ pointsToPodium }} points pour atteindre le top 3!</p>
             {% elseif userRank > 0 and userRank <= 3 %}
-                <p class="text-xs sm:text-sm opacity-90">Tu es sur le podium ! Garde ta place ! 🏆</p>
+                <p class="text-sm opacity-90">Tu es sur le podium ! Garde ta place ! 🏆</p>
             {% endif %}
         </div>
     </section>
