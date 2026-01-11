@@ -12,7 +12,6 @@ class HomeController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(GuestbookRepository $guestbookRepository): Response
     {
-        // Mock data for news slider
         $newsItems = [
             [
                 'id' => '1',
@@ -46,10 +45,8 @@ class HomeController extends AbstractController
             ['id' => 'badges', 'title' => 'Mes Badges', 'description' => 'Collection & Trophées', 'icon' => 'trophy', 'color' => 'from-gold to-royal-blue', 'route' => 'app_dashboard']
         ];
 
-        // Fetch latest 10 approved guestbook messages
         $testimonials = $guestbookRepository->findBy(['isApproved' => true], ['createdAt' => 'DESC'], 10);
 
-        // If no testimonials, add mocks for display
         if (empty($testimonials)) {
             $testimonials = [
                 (object)['pseudo' => 'Sarah', 'message' => 'Géoula Kids est génial ! J\'adore les jeux et les missions.', 'createdAt' => new \DateTime('-2 days')],

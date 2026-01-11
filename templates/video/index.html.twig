@@ -3,24 +3,59 @@
 {% block title %}Vidéos - Géoula Kids{% endblock %}
 
 {% block body %}
-<div class="text-center space-y-4">
-    <h1 class="text-3xl font-bold gradient-text">🎥 Vidéos Géoula</h1>
-    <p class="text-gray-600">Regarde des vidéos passionnantes sur la Torah et la Géoula !</p>
+<div class="space-y-8 max-w-7xl mx-auto">
+    {# Header #}
+    <div class="text-center space-y-2">
+        <h1 class="text-3xl sm:text-4xl font-bold gradient-text flex items-center justify-center gap-3">
+            <span class="text-vibrant-orange">🎥</span>
+            Vidéos Géoula
+        </h1>
+        <p class="text-sm sm:text-base text-gray-600">
+            Regarde des vidéos passionnantes sur la Torah et la Géoula !
+        </p>
+    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-        {# Placeholder pour les vidéos #}
-        <div class="glass-card rounded-[20px] p-4">
-            <div class="aspect-video bg-gray-200 rounded-xl mb-4 flex items-center justify-center">
-                <span class="text-4xl">▶️</span>
+    {# Videos Grid (Centered) #}
+    <div class="flex flex-wrap justify-center gap-6">
+        {% for video in videos %}
+            <div class="glass-card rounded-[25px] overflow-hidden group hover:shadow-2xl transition-all duration-300 flex flex-col w-full max-w-2xl">
+                {# Video Player / Thumbnail #}
+                <div class="relative aspect-video bg-black">
+                    <iframe
+                        src="{{ video.url }}"
+                        title="{{ video.title }}"
+                        class="w-full h-full absolute inset-0"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+
+                {# Content #}
+                <div class="p-5 flex flex-col flex-grow text-center">
+                    <div class="flex justify-center items-center gap-3 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-blue-100 text-royal-blue text-xs font-bold">
+                            {{ video.category }}
+                        </span>
+                        <span class="text-xs text-gray-500 flex items-center gap-1">
+                            ⏱️ {{ video.duration }}
+                        </span>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-royal-blue mb-2 group-hover:text-vibrant-orange transition-colors">
+                        {{ video.title }}
+                    </h3>
+
+                    <p class="text-sm text-gray-600">
+                        {{ video.description }}
+                    </p>
+                </div>
             </div>
-            <h3 class="font-bold text-royal-blue">Histoire du Rabbi</h3>
-        </div>
-        <div class="glass-card rounded-[20px] p-4">
-            <div class="aspect-video bg-gray-200 rounded-xl mb-4 flex items-center justify-center">
-                <span class="text-4xl">▶️</span>
+        {% else %}
+            <div class="w-full text-center py-12">
+                <p class="text-gray-500 text-lg">Aucune vidéo disponible pour le moment.</p>
             </div>
-            <h3 class="font-bold text-royal-blue">Paracha en dessin animé</h3>
-        </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

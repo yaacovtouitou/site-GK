@@ -24,7 +24,6 @@ class GamingZoneController extends AbstractController
     {
         $currentUser = $this->getUser();
 
-        // Real leaderboard data (Top 10)
         $topUsers = $userRepository->findBy([], ['totalPoints' => 'DESC'], 10);
 
         $leaderboard = [];
@@ -38,7 +37,6 @@ class GamingZoneController extends AbstractController
             ];
         }
 
-        // Calculate current user rank
         $userRank = 0;
         $pointsToPodium = 0;
         $allUsers = $userRepository->findBy([], ['totalPoints' => 'DESC']);
@@ -54,7 +52,6 @@ class GamingZoneController extends AbstractController
             $pointsToPodium = $thirdPlacePoints - $currentUser->getTotalPoints() + 1;
         }
 
-        // Get current Paracha for the weekly game
         $parachaInfo = $calendarService->getCurrentParacha();
         $currentParacha = $parachaInfo['name'];
 
@@ -83,10 +80,10 @@ class GamingZoneController extends AbstractController
                 'id' => 'geoula-run',
                 'title' => 'Géoula Run',
                 'description' => 'Cours, saute et attrape les Mitzvot ! Évite les obstacles.',
-                'icon' => 'run', // Custom icon logic needed in template
+                'icon' => 'run',
                 'color' => 'from-blue-500 to-cyan-500',
                 'type' => 'Permanent',
-                'points' => 150, // High score potential
+                'points' => 150,
                 'energy_cost' => 15
             ]
         ];
@@ -153,11 +150,9 @@ class GamingZoneController extends AbstractController
             if ($gameId === 'torah-quest') {
                 $pointsEarned = (int) ceil($score / 10);
             } elseif ($gameId === 'geoula-run') {
-                // Geoula Run score is distance/points collected.
-                // Let's say 1 point per 50 score in game
                 $pointsEarned = (int) ceil($score / 50);
             } else {
-                $pointsEarned = 10; // Default
+                $pointsEarned = 10;
             }
 
             $gamificationManager->addPoints($user, $pointsEarned);
@@ -166,7 +161,6 @@ class GamingZoneController extends AbstractController
         return $this->json(['success' => true, 'pointsEarned' => $pointsEarned ?? 0]);
     }
 
-    // Deprecated route kept for compatibility
     #[Route('/gaming-zone/complete/{gameId}', name: 'app_gaming_complete')]
     public function completeGame(string $gameId): Response
     {

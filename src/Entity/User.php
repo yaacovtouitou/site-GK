@@ -28,13 +28,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private array $roles = [];
 
-    /**
-     * @var string The hashed password
-     */
     #[ORM\Column]
     private ?string $password = null;
 
-    // Infos Parent
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $lastName = null;
 
@@ -50,11 +46,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $city = null;
 
-    // Relation Enfants
     #[ORM\OneToMany(mappedBy: 'parent', targetEntity: Child::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $children;
 
-    // Champs Gamification
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $avatar = null;
 
@@ -145,10 +139,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void
     {
-        // $this->plainPassword = null;
     }
 
-    // Getters/Setters Parent Info
     public function getLastName(): ?string { return $this->lastName; }
     public function setLastName(?string $lastName): static { $this->lastName = $lastName; return $this; }
 
@@ -188,7 +180,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    // Gamification Getters/Setters
     public function getAvatar(): ?string { return $this->avatar; }
     public function setAvatar(?string $avatar): static { $this->avatar = $avatar; return $this; }
     public function getTotalPoints(): ?int { return $this->totalPoints; }
@@ -204,9 +195,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getLastLoginDate(): ?\DateTimeInterface { return $this->lastLoginDate; }
     public function setLastLoginDate(?\DateTimeInterface $lastLoginDate): static { $this->lastLoginDate = $lastLoginDate; return $this; }
 
-    /**
-     * @return Collection<int, Badge>
-     */
     public function getBadges(): Collection
     {
         return $this->badges;
