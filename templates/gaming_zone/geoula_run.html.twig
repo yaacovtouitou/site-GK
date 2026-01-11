@@ -4,10 +4,11 @@
 
 {% block body %}
 <div class="flex items-center justify-center min-h-[80vh] py-4 sm:py-8 bg-gradient-to-b from-cyan-100 to-blue-200 px-2 sm:px-4">
-    <div id="game-container" class="relative w-full max-w-4xl aspect-[16/9] bg-white rounded-[20px] sm:rounded-[30px] shadow-2xl overflow-hidden border-4 sm:border-8 border-royal-blue">
+    {# Container: Aspect ratio 16/9 on desktop, but more flexible on mobile to fit screen #}
+    <div id="game-container" class="relative w-full max-w-4xl aspect-[16/9] max-h-[80vh] bg-white rounded-[20px] sm:rounded-[30px] shadow-2xl overflow-hidden border-4 sm:border-8 border-royal-blue">
 
         {# HUD #}
-        <div class="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex gap-2 sm:gap-4">
+        <div class="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex gap-2 sm:gap-4 pointer-events-none">
             <div class="bg-white/90 backdrop-blur px-3 py-1 sm:px-6 sm:py-3 rounded-full font-bold text-royal-blue shadow-lg border-2 border-royal-blue/10 text-xs sm:text-xl">
                 Score: <span id="score">0</span>
             </div>
@@ -18,10 +19,10 @@
         </div>
 
         {# Canvas #}
-        <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+        <canvas id="gameCanvas" class="w-full h-full block touch-none"></canvas>
 
         {# Start Screen #}
-        <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-20 backdrop-blur-sm p-4 text-center">
+        <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-30 backdrop-blur-sm p-4 text-center">
             <h1 class="text-3xl sm:text-6xl font-bold text-white mb-4 sm:mb-6 neon-gold drop-shadow-lg">Géoula Run 🏃‍♂️</h1>
             <p class="text-white text-sm sm:text-2xl mb-6 sm:mb-10 font-medium">Appuie sur l'écran ou ESPACE pour sauter !</p>
             <button onclick="startGame()" class="puffy-button-primary px-6 py-3 sm:px-10 sm:py-5 text-lg sm:text-2xl rounded-[15px] sm:rounded-[25px] font-bold animate-bounce shadow-xl hover:scale-105 transition-transform">
@@ -30,7 +31,7 @@
         </div>
 
         {# Game Over Screen #}
-        <div id="game-over-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 z-20 hidden backdrop-blur-md p-4">
+        <div id="game-over-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 z-30 hidden backdrop-blur-md p-4">
             <h2 class="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4">Oups ! 🤕</h2>
             <p class="text-white/80 mb-4 sm:mb-8 text-base sm:text-xl">Tu as trébuché...</p>
 
@@ -99,10 +100,7 @@
     const imgPlayerRaw = new Image();
     imgPlayerRaw.src = "{{ asset('images/tsedaka-run/perso-run.png') }}";
 
-    // Scaling factor based on canvas size
-    let scale = 1;
-
-    // Player visual offset to fix floating (positive value moves down)
+    // Increased offset to fix floating
     const basePlayerVisualOffset = 25;
     let playerVisualOffset = basePlayerVisualOffset;
 
@@ -162,7 +160,13 @@
         canvas.height = container.clientHeight;
 
         // Calculate scale factor relative to base design
+        // Use the smaller scale to fit everything
         scale = Math.min(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
+
+        // If on mobile (portrait), adjust scale to be bigger relative to screen width
+        if (canvas.width < 600) {
+             scale = canvas.width / BASE_WIDTH * 1.5; // Zoom in a bit on mobile
+        }
 
         // Update ground
         groundHeight = baseGroundHeight * scale;
